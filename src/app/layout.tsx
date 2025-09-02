@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
-import { Share_Tech_Mono } from "next/font/google";
+import { Orbitron } from "next/font/google";
 import "./globals.css";
 
-const shareTechMono = Share_Tech_Mono({
+const orbitron = Orbitron({
   subsets: ["latin"],
-  weight: "400",
-  variable: "--font-share-tech-mono",
+  variable: "--font-orbitron",
 });
 
 export const metadata: Metadata = {
@@ -32,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${shareTechMono.variable} dark`}>
+    <html lang="en" className={`${orbitron.variable} dark`}>
       <head>
         <link rel="icon" href="/logo.png" />
       </head>
