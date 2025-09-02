@@ -18,3 +18,12 @@ export const AnubisIcon = (props: SVGProps<SVGSVGElement>) => (
     <path d="M12 8C8 8 6 13.2 6 15.6C6 19.3333 8.66667 22 12 22C15.3333 22 18 19.3333 18 15.6C18 13.2 16 8 12 8Z" />
   </svg>
 );
+
+export const LogoIcon = (props: SVGProps<SVGSVGElement>) => (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <rect width="32" height="32" rx="8" fill="hsl(var(--primary))"/>
+        <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="hsl(var(--primary-foreground))" fontSize="18" fontWeight="bold" fontFamily="Space Grotesk">
+            A
+        </text>
+    </svg>
+);

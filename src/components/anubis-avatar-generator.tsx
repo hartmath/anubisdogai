@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Upload, WandSparkles, Download, Loader2, AlertTriangle } from "lucide-react";
+import { Upload, WandSparkles, Download, Loader2, AlertTriangle, X } from "lucide-react";
+import { useDropzone } from "react-dropzone";
 
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { generateAvatar } from "@/app/actions";
-import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
 
-const BRAND_WATERMARK = "Anubis Avatar Alchemist";
+const BRAND_WATERMARK = "Anubis Dog AI";
 
 export function AnubisAvatarGenerator() {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -20,49 +19,79 @@ export function AnubisAvatarGenerator() {
   const [finalImage, setFinalImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [shouldStylize, setShouldStylize] = useState(true);
-  const { toast } = useToast();
+  const [progress, setProgress] = useState(0);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
     if (file) {
       const reader = new FileReader();
+      reader.onloadstart = () => {
+        setIsLoading(true);
+        setProgress(0);
+      };
+      reader.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 50);
+          setProgress(percent);
+        }
+      };
       reader.onload = (e) => {
         setOriginalImage(e.target?.result as string);
         setGeneratedImage(null);
         setFinalImage(null);
         setError(null);
+        setProgress(50);
+        handleGenerate(e.target?.result as string);
       };
       reader.readAsDataURL(file);
     }
-  };
+  }, []);
 
-  const triggerFileUpload = () => {
-    fileInputRef.current?.click();
-  };
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp"] },
+    maxSize: 4 * 1024 * 1024, // 4MB
+  });
 
-  const handleGenerate = async () => {
-    if (!originalImage) return;
+  const handleGenerate = async (imageData: string) => {
+    if (!imageData) return;
     setIsLoading(true);
     setError(null);
-    setGeneratedImage(null);
-    setFinalImage(null);
+    setProgress(50);
 
-    const result = await generateAvatar(originalImage, shouldStylize);
+    const generationInterval = setInterval(() => {
+        setProgress((prev) => {
+            if (prev >= 95) {
+                clearInterval(generationInterval);
+                return prev;
+            }
+            return prev + 1;
+        });
+    }, 200);
+
+
+    const result = await generateAvatar(imageData, true);
+    clearInterval(generationInterval);
+    setProgress(100);
+
 
     if (result.error) {
       setError(result.error);
+      setIsLoading(false);
     } else if (result.imageUrl) {
       setGeneratedImage(result.imageUrl);
     }
-    setIsLoading(false);
   };
-  
+
   useEffect(() => {
-    if (!generatedImage || !canvasRef.current) return;
+    if (!generatedImage || !canvasRef.current) {
+        if (generatedImage === null && !isLoading) {
+            setProgress(0);
+        }
+        return;
+    };
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -71,7 +100,7 @@ export function AnubisAvatarGenerator() {
     const img = new window.Image();
     img.crossOrigin = "anonymous";
     img.src = generatedImage;
-    
+
     img.onload = () => {
       canvas.width = img.naturalWidth;
       canvas.height = img.naturalHeight;
@@ -80,83 +109,46 @@ export function AnubisAvatarGenerator() {
       // Add watermark
       const fontSize = Math.max(16, canvas.width / 35);
       ctx.font = `bold ${fontSize}px "Space Grotesk", sans-serif`;
-      ctx.fillStyle = "rgba(212, 175, 55, 0.7)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
       ctx.textAlign = "center";
       ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
       ctx.shadowBlur = 5;
-      ctx.fillText(BRAND_WATERMARK, canvas.width / 2, canvas.height - (fontSize * 1.2));
-      
-      setFinalImage(canvas.toDataURL("image/png"));
-    };
-    
-    img.onerror = () => {
-        setError("Failed to load generated image for watermarking. It might be a cross-origin issue. You can still download the unwatermarked image.");
-        setFinalImage(generatedImage); 
-    }
+      ctx.fillText(BRAND_WATERMARK, canvas.width / 2, canvas.height - fontSize * 1.2);
 
-  }, [generatedImage]);
+      setFinalImage(canvas.toDataURL("image/png"));
+      setIsLoading(false);
+    };
+
+    img.onerror = () => {
+      setError(
+        "Failed to load generated image for watermarking. You can still download the image."
+      );
+      setFinalImage(generatedImage);
+      setIsLoading(false);
+    };
+  }, [generatedImage, isLoading]);
 
   const handleDownload = () => {
-    if (!finalImage) {
-        toast({
-            title: "No Image to Download",
-            description: "Please generate an avatar first.",
-            variant: "destructive",
-        });
-        return;
-    };
+    if (!finalImage) return;
     const link = document.createElement("a");
     link.href = finalImage;
-    link.download = "anubis-avatar.png";
+    link.download = "anubis-dog-ai-avatar.png";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
+  
+  const handleReset = () => {
+      setOriginalImage(null);
+      setGeneratedImage(null);
+      setFinalImage(null);
+      setIsLoading(false);
+      setError(null);
+      setProgress(0);
+  }
 
   return (
-    <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-        <ImageDisplayCard
-          title="Your Photo"
-          imageSrc={originalImage}
-          onUploadClick={triggerFileUpload}
-          isLoading={false}
-          isUpload
-        />
-        <ImageDisplayCard
-          title="Anubis Avatar"
-          imageSrc={finalImage || generatedImage}
-          isLoading={isLoading}
-        />
-      </div>
-
-      <Card className="bg-card/50 backdrop-blur-sm border-primary/20 shadow-lg shadow-primary/5">
-        <CardContent className="p-6 flex flex-col lg:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4 cursor-pointer" onClick={() => setShouldStylize(!shouldStylize)}>
-            <Switch
-              id="stylize-switch"
-              checked={shouldStylize}
-              onCheckedChange={setShouldStylize}
-              aria-label="Toggle AI Stylization"
-            />
-            <Label htmlFor="stylize-switch" className="flex flex-col cursor-pointer">
-              <span className="font-bold text-base text-primary-foreground">AI Style Transfer</span>
-              <span className="text-sm text-muted-foreground">Enhance the avatar with a futuristic Anubis aesthetic</span>
-            </Label>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-            <Button onClick={handleGenerate} disabled={!originalImage || isLoading} size="lg" className="w-full sm:w-auto font-bold text-base shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-shadow">
-              {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <WandSparkles className="mr-2 h-5 w-5" />}
-              Generate
-            </Button>
-            <Button onClick={handleDownload} disabled={!finalImage || isLoading} size="lg" variant="outline" className="w-full sm:w-auto text-base">
-              <Download className="mr-2 h-5 w-5" />
-              Download
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      
+    <div className="w-full max-w-lg mx-auto flex flex-col gap-4">
       {error && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
@@ -165,61 +157,49 @@ export function AnubisAvatarGenerator() {
         </Alert>
       )}
 
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        className="hidden"
-        accept="image/png, image/jpeg"
-      />
+      {!finalImage && !isLoading && (
+        <div
+          {...getRootProps()}
+          className={`w-full aspect-video rounded-lg border-2 border-dashed border-primary/50 flex flex-col items-center justify-center text-center p-8 cursor-pointer transition-colors ${
+            isDragActive ? "bg-primary/10" : "hover:bg-primary/5"
+          }`}
+        >
+          <input {...getInputProps()} />
+          <Upload className="w-12 h-12 text-primary mb-4" />
+          <p className="font-bold text-lg text-primary-foreground">
+            Click to upload or drag and drop
+          </p>
+          <p className="text-sm text-muted-foreground">PNG, JPG, WEBP (Max. 4MB)</p>
+        </div>
+      )}
+      
+      {(isLoading || finalImage) && (
+          <Card className="w-full aspect-video relative overflow-hidden bg-card/50">
+              {finalImage && <Image src={finalImage} alt="Generated Anubis Avatar" fill className="object-cover"/>}
+              {isLoading && (
+                  <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-4 text-white">
+                      <Loader2 className="w-12 h-12 animate-spin text-primary"/>
+                      <p className="font-bold text-lg">Generating your avatar...</p>
+                      <Progress value={progress} className="w-3/4"/>
+                  </div>
+              )}
+          </Card>
+      )}
+
+      {finalImage && !isLoading && (
+        <div className="flex gap-4 justify-center">
+          <Button onClick={handleReset} variant="outline" size="lg">
+            <X className="mr-2 h-5 w-5" />
+            Create New
+          </Button>
+          <Button onClick={handleDownload} size="lg">
+            <Download className="mr-2 h-5 w-5" />
+            Download
+          </Button>
+        </div>
+      )}
+      
       <canvas ref={canvasRef} className="hidden" />
     </div>
   );
-}
-
-function ImageDisplayCard({ title, imageSrc, onUploadClick, isLoading, isUpload = false }: {
-  title: string;
-  imageSrc: string | null;
-  onUploadClick?: () => void;
-  isLoading: boolean;
-  isUpload?: boolean;
-}) {
-  return (
-    <Card className="aspect-square w-full flex flex-col items-center justify-center relative overflow-hidden bg-transparent border-2 border-dashed border-muted-foreground/30 transition-all duration-300 hover:border-primary/50 group">
-        <div className="w-full h-full flex flex-col items-center justify-center">
-            {isLoading ? (
-                <div className="flex flex-col items-center gap-4 text-muted-foreground animate-pulse">
-                    <Loader2 className="h-16 w-16 animate-spin text-primary" />
-                    <p className="font-headline text-lg">Conjuring your avatar...</p>
-                </div>
-            ) : imageSrc ? (
-                <Image
-                    src={imageSrc}
-                    alt={title}
-                    fill
-                    className="object-cover"
-                />
-            ) : isUpload ? (
-                <button
-                    onClick={onUploadClick}
-                    className="flex flex-col items-center gap-4 text-muted-foreground hover:text-primary transition-colors duration-300 w-full h-full justify-center"
-                    aria-label="Upload a photo"
-                >
-                    <div className="w-24 h-24 rounded-full flex items-center justify-center bg-muted-foreground/10 group-hover:bg-primary/10 border-2 border-dashed border-muted-foreground/50 group-hover:border-primary transition-all">
-                        <Upload className="h-10 w-10" />
-                    </div>
-                    <span className="font-bold text-lg">Upload Photo</span>
-                    <span className="text-sm max-w-xs text-center">Click to select a profile picture to transform</span>
-                </button>
-            ) : (
-                <div className="flex flex-col items-center gap-4 text-muted-foreground">
-                    <div className="w-24 h-24 rounded-full flex items-center justify-center bg-muted-foreground/10 border-2 border-dashed border-muted-foreground/50">
-                        <WandSparkles className="h-10 w-10" />
-                    </div>
-                    <p className="font-headline text-lg">Your divine avatar will appear here</p>
-                </div>
-            )}
-        </div>
-    </Card>
-  )
 }

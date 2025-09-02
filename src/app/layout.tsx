@@ -3,8 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Anubis Avatar Alchemist",
-  description: "Transform your profile photo into a masterpiece of ancient futurism.",
+  title: "Anubis Dog AI",
+  description: "Create your Anubis Dog AI Avatar",
 };
 
 export default function RootLayout({
