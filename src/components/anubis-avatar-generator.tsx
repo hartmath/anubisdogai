@@ -161,7 +161,7 @@ export function AnubisAvatarGenerator() {
       {!finalImage && !isLoading && (
         <div
           {...getRootProps()}
-          className={`w-full aspect-video rounded-lg border-2 border-dashed border-primary/50 flex flex-col items-center justify-center text-center p-8 cursor-pointer transition-colors ${
+          className={`w-full aspect-square rounded-lg border-2 border-dashed border-primary/50 flex flex-col items-center justify-center text-center p-8 cursor-pointer transition-colors ${
             isDragActive ? "bg-primary/10" : "hover:bg-primary/5"
           }`}
         >
@@ -175,7 +175,7 @@ export function AnubisAvatarGenerator() {
       )}
       
       {(isLoading || finalImage) && (
-          <Card className="w-full aspect-video relative overflow-hidden bg-card/50">
+          <Card className="w-full aspect-square relative overflow-hidden bg-card/50">
               {finalImage && <Image src={finalImage} alt="Generated Anubis Avatar" fill className="object-cover"/>}
               {isLoading && (
                   <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-4 text-white">
