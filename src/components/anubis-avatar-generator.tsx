@@ -132,7 +132,8 @@ export function AnubisAvatarGenerator() {
     if (!finalImage) return;
     const link = document.createElement("a");
     link.href = finalImage;
-    link.download = "anubis-dog-ai-avatar.png";
+    const randomNumber = Math.floor(Math.random() * 10000);
+    link.download = `$ANOS_${randomNumber}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
