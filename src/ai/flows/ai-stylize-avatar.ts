@@ -53,7 +53,7 @@ const aiStylizeAvatarFlow = ai.defineFlow(
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
       prompt: [
         {media: {url: input.photoDataUri}},
-        {text: 'An anubis dog character based on the user\'s photo. The style should be digital art, featuring a headdress with gold and teal details. The overall aesthetic should be similar to the provided sample image.'},
+        {text: 'A portrait of the person from the photo wearing an ancient Egyptian pharaoh\'s crown. The style should be realistic digital art with gold and teal details on the crown. The person\'s face should be clearly recognizable.'},
       ],
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
