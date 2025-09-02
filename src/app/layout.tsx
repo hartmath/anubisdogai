@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     description: "Create your Anubis Dog AI Avatar",
     images: [
       {
-        url: "https://example.com/your-logo.png", // Replace with your actual logo URL
+        url: "/logo.png", // Using the logo from the public folder
         width: 1200,
         height: 630,
         alt: "Anubis Dog AI",
@@ -27,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <link rel="icon" href="/logo.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
