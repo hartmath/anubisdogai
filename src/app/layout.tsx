@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
-import { Space_Grotesk } from "next/font/google";
+import { Share_Tech_Mono } from "next/font/google";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
+const shareTechMono = Share_Tech_Mono({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
+  weight: "400",
+  variable: "--font-share-tech-mono",
 });
 
 export const metadata: Metadata = {
@@ -31,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} dark`}>
+    <html lang="en" className={`${shareTechMono.variable} dark`}>
       <head>
         <link rel="icon" href="/logo.png" />
       </head>
