@@ -5,6 +5,18 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Anubis Dog AI",
   description: "Create your Anubis Dog AI Avatar",
+  openGraph: {
+    title: "Anubis Dog AI",
+    description: "Create your Anubis Dog AI Avatar",
+    images: [
+      {
+        url: "https://example.com/your-logo.png", // Replace with your actual logo URL
+        width: 1200,
+        height: 630,
+        alt: "Anubis Dog AI",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
