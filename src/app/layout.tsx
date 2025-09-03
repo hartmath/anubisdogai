@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
-import { Orbitron } from "next/font/google";
+import { Orbitron, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
 const orbitron = Orbitron({
@@ -8,11 +8,16 @@ const orbitron = Orbitron({
   variable: "--font-orbitron",
 });
 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+});
+
 export const metadata: Metadata = {
-  title: "Anubis Dog AI",
+  title: "Anubis Avatar Alchemist",
   description: "Create your Anubis Dog AI Avatar",
   openGraph: {
-    title: "Anubis Dog AI",
+    title: "Anubis Avatar Alchemist",
     description: "Create your Anubis Dog AI Avatar",
     images: [
       {
@@ -31,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${orbitron.variable} dark`}>
+    <html lang="en" className={`${orbitron.variable} ${spaceGrotesk.variable} dark`}>
       <head>
         <link rel="icon" href="/logo.png" />
       </head>

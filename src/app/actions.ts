@@ -4,11 +4,6 @@
 import { aiStylizeAvatar } from "@/ai/flows/ai-stylize-avatar";
 import type { AIStylizeAvatarInput } from "@/ai/flows/ai-stylize-avatar";
 
-// A placeholder for the headdress data URI, as it's required by the flow's type signature.
-// This is a 1x1 transparent PNG.
-const HEADDRESS_PLACEHOLDER_DATA_URI =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
-
 export async function generateAvatar(
   photoDataUri: string,
   shouldStylize: boolean
@@ -20,7 +15,6 @@ export async function generateAvatar(
   try {
     const input: AIStylizeAvatarInput = {
       photoDataUri,
-      headdressDataUri: HEADDRESS_PLACEHOLDER_DATA_URI,
       shouldStylize,
     };
 

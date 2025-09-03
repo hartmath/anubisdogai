@@ -10,18 +10,12 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import wav from 'wav';
 
 const AIStylizeAvatarInputSchema = z.object({
   photoDataUri: z
     .string()
     .describe(
       "A photo of the user, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
-    ),
-  headdressDataUri: z
-    .string()
-    .describe(
-      "A photo of the headdress to overlay, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
   shouldStylize: z.boolean().describe('Whether or not to apply AI stylization.'),
 });
@@ -53,7 +47,7 @@ const aiStylizeAvatarFlow = ai.defineFlow(
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
       prompt: [
         {media: {url: input.photoDataUri}},
-        {text: 'A portrait of the person from the photo wearing an ancient Egyptian pharaoh\'s crown. The style should be realistic digital art with gold and teal details on the crown. The person\'s face should be clearly recognizable.'},
+        {text: 'A portrait of the person from the photo wearing an ancient Egyptian pharaoh\'s headdress. The style should be realistic digital art with gold and teal details on the headdress. The person\'s face should be clearly recognizable.'},
       ],
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
