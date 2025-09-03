@@ -67,10 +67,11 @@ const generateAvatarFlow = ai.defineFlow(
               Instructions:
               1. Analyze the input photo to identify the person, their face, and their pose.
               2. Keep the person's face and basic pose recognizable.
-              3. Generate a headdress that perfectly fits the person's head.
-              4. Apply the following style to the headdress AND the entire image (background, lighting, and mood): ${stylePrompt}
-              5. The final image should be a seamless, artistic composition.
-              6. Output only the final, modified image. Do not output text or any other content.`,
+              3. If the input image is a 2D illustration or cartoon, the output should match that 2D style. If the input is a photograph, the output should be photorealistic.
+              4. Generate a headdress that perfectly fits the person's head.
+              5. Apply the following style to the headdress AND the entire image (background, lighting, and mood): ${stylePrompt}
+              6. The final image should be a seamless, artistic composition.
+              7. Output only the final, modified image. Do not output text or any other content.`,
         },
       ],
       config: {
