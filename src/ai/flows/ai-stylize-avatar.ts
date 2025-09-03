@@ -47,7 +47,7 @@ const aiStylizeAvatarFlow = ai.defineFlow(
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
       prompt: [
         {media: {url: input.photoDataUri}},
-        {text: 'Place an ancient Egyptian Anubis helmet on the person\'s head. The helmet should be ornate, with gold and black accents. The style should be a modern, digital art masterpiece, blending ancient aesthetics with a futuristic feel. Ensure the original facial features are clearly visible and recognizable under the helmet.'},
+        {text: 'Place an ancient Egyptian pharaoh\'s crown on the person\'s head. The crown should be the iconic Nemes headdress, with alternating blue and gold stripes, like the one seen on Tutankhamun. The style should be a modern, digital art masterpiece, blending ancient aesthetics with a futuristic feel. Ensure the original facial features are clearly visible and recognizable under the headdress.'},
       ],
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
