@@ -44,13 +44,13 @@ const aiStylizeAvatarFlow = ai.defineFlow(
     }
 
     const {media} = await ai.generate({
-      model: 'googleai/gemini-2.0-flash-preview-image-generation',
+      model: 'googleai/gemini-pro-vision',
       prompt: [
         {media: {url: input.photoDataUri}},
-        {text: 'Place an ancient Egyptian pharaoh\'s crown on the person\'s head. The crown should be the iconic Nemes headdress, with alternating blue and gold stripes, like the one seen on Tutankhamun. The style should be a modern, digital art masterpiece, blending ancient aesthetics with a futuristic feel. Ensure the original facial features are clearly visible and recognizable under the headdress.'},
+        {text: 'Place an ancient Egyptian pharaoh\'s crown on the person\'s head. The crown should be the iconic Nemes headdress, with alternating blue and gold stripes, like the one seen on Tutankhamun. The style should be a modern, digital art masterpiece, blending ancient aesthetics with a futuristic feel. Ensure the original facial features are clearly visible and recognizable under the headdress. Return only the image.'},
       ],
       config: {
-        responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
+        responseModalities: ['IMAGE'],
       },
     });
 
