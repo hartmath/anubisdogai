@@ -266,23 +266,24 @@ export function AnubisAvatarGenerator() {
                      </p>
                  </CardHeader>
                  <CardContent className="flex flex-col gap-8 items-center">
-                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
-                         {STYLES.map((style) => (
-                             <Button
-                                 key={style}
-                                 variant={selectedStyle === style ? "default" : "secondary"}
-                                 onClick={() => setSelectedStyle(style)}
-                                 className={cn(
-                                     "h-20 text-lg font-bold transition-all duration-300",
-                                     selectedStyle === style
-                                         ? "border-2 border-primary-foreground/50"
-                                         : ""
-                                 )}
-                             >
-                                 {style}
-                             </Button>
-                         ))}
-                     </div>
+                    <div className="flex flex-wrap justify-center gap-4 w-full">
+                        {STYLES.map((style) => (
+                            <Button
+                                key={style}
+                                variant={selectedStyle === style ? "default" : "secondary"}
+                                onClick={() => setSelectedStyle(style)}
+                                className={cn(
+                                    "h-16 text-md font-bold transition-all duration-300 flex-grow sm:flex-grow-0 basis-40",
+                                    "whitespace-nowrap px-4",
+                                    selectedStyle === style
+                                        ? "border-2 border-primary-foreground/50"
+                                        : ""
+                                )}
+                            >
+                                {style}
+                            </Button>
+                        ))}
+                    </div>
  
                      <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
                          <Button
