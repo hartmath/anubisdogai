@@ -87,7 +87,7 @@ export function AnubisAvatarGenerator() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
-    const [selectedStyle, setSelectedStyle] = useState("Dark Gold");
+    const [selectedStyle, setSelectedStyle] = useState("Cosmic Purple");
     const [generationStarted, setGenerationStarted] = useState(false);
     const [remainingGenerations, setRemainingGenerations] = useState(GENERATION_LIMIT);
     const [generationLimitReached, setGenerationLimitReached] = useState(false);
