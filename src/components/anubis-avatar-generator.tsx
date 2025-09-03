@@ -353,10 +353,10 @@ export function AnubisAvatarGenerator() {
                                  </div>
                              )}
                             
-                            {originalImage && <Image src={originalImage} alt="User photo background" fill className="object-cover"/>}
 
                              {crownImage ? (
                                 <>
+                                    {originalImage && <Image src={originalImage} alt="User photo background" fill className="object-cover"/>}
                                     <Draggable
                                       bounds="parent"
                                       position={crownPosition}
@@ -448,3 +448,5 @@ export function AnubisAvatarGenerator() {
         </div>
     );
 }
+
+    
