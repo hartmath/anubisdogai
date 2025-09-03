@@ -14,7 +14,10 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
 });
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: "Anubis Avatar Alchemist",
   description: "Create your Anubis Dog AI Avatar",
   openGraph: {
