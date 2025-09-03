@@ -304,9 +304,13 @@ export function AnubisAvatarGenerator() {
                              ) : (
                                  generationStarted && !isLoading ? (
                                      <div className="w-full h-full bg-secondary flex items-center justify-center">
+                                         <p className="text-muted-foreground p-4 text-center">AI stylization is temporarily disabled, but your image is ready.</p>
+                                     </div>
+                                 ) :  !generationStarted && (
+                                     <div className="w-full h-full bg-secondary flex items-center justify-center">
                                          <Image src="/helmet.png" alt="Headdress placeholder" width={256} height={256} className="opacity-10"/>
                                      </div>
-                                 ) : null
+                                 )
                              )}
                          </Card>
                      </div>
