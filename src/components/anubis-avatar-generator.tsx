@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import {
     Upload,
@@ -89,8 +89,27 @@ export function AnubisAvatarGenerator() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [selectedStyle, setSelectedStyle] = useState("Cosmic Purple");
     const [limitReached, setLimitReached] = useState(false);
+    const [remainingGenerations, setRemainingGenerations] = useState(GENERATION_LIMIT);
     
     const { toast } = useToast();
+
+    useEffect(() => {
+        const now = new Date().getTime();
+        let usage = JSON.parse(localStorage.getItem(USAGE_STORAGE_KEY) || '{}');
+
+        if (usage.timestamp && (now - usage.timestamp > ONE_YEAR_IN_MS)) {
+            usage = {};
+            localStorage.removeItem(USAGE_STORAGE_KEY);
+        }
+
+        const currentCount = usage.count || 0;
+        const remaining = GENERATION_LIMIT - currentCount;
+        setRemainingGenerations(remaining);
+
+        if (remaining <= 0) {
+            setLimitReached(true);
+        }
+    }, []);
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
@@ -123,20 +142,13 @@ export function AnubisAvatarGenerator() {
     const handleGeneration = async () => {
         if (!originalImage) return;
 
-        // Check generation limits
-        const now = new Date().getTime();
-        let usage = JSON.parse(localStorage.getItem(USAGE_STORAGE_KEY) || '{}');
-
-        if (usage.timestamp && (now - usage.timestamp > ONE_YEAR_IN_MS)) {
-            // Reset if more than a year has passed
-            usage = {};
+        // Double check limits
+        if (remainingGenerations <= 0) {
+             setLimitReached(true);
+             setError("You have reached the generation limit. Please contact support.");
+             return;
         }
 
-        if (usage.count >= GENERATION_LIMIT) {
-            setLimitReached(true);
-            setError("You have reached the generation limit. Please contact support.");
-            return;
-        }
 
         setIsGenerating(true);
         setError(null);
@@ -152,9 +164,15 @@ export function AnubisAvatarGenerator() {
                 });
 
                 // Update usage count
+                const now = new Date().getTime();
+                let usage = JSON.parse(localStorage.getItem(USAGE_STORAGE_KEY) || '{}');
                 const newCount = (usage.count || 0) + 1;
                 const newTimestamp = usage.timestamp || now;
                 localStorage.setItem(USAGE_STORAGE_KEY, JSON.stringify({ count: newCount, timestamp: newTimestamp }));
+                setRemainingGenerations(GENERATION_LIMIT - newCount);
+                if (newCount >= GENERATION_LIMIT) {
+                    setLimitReached(true);
+                }
 
             } else {
                 throw new Error("AI did not return an image.");
@@ -190,7 +208,6 @@ export function AnubisAvatarGenerator() {
         setGeneratedImage(null);
         setError(null);
         setIsGenerating(false);
-        setLimitReached(false);
     };
 
     return (
@@ -202,6 +219,12 @@ export function AnubisAvatarGenerator() {
                 <p className="max-w-2xl mx-auto mt-4 text-md sm:text-lg text-muted-foreground">
                    Upload your photo and our AI will bestow upon you the headdress of Anubis.
                 </p>
+                <div className="mt-4 text-sm font-semibold text-primary/80">
+                    {remainingGenerations > 0 
+                        ? `You have ${remainingGenerations} generation${remainingGenerations > 1 ? 's' : ''} remaining.`
+                        : "You have no generations remaining."
+                    }
+                </div>
             </div>
 
             {!originalImage && (
@@ -227,6 +250,7 @@ export function AnubisAvatarGenerator() {
                 <Alert variant="destructive" className="w-full max-w-2xl">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>{limitReached ? "Generation Limit Reached" : "Error"}</AlertTitle>
+
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
@@ -278,12 +302,14 @@ export function AnubisAvatarGenerator() {
                             <button
                                 key={style.name}
                                 onClick={() => setSelectedStyle(style.name)}
+                                disabled={limitReached}
                                 className={cn(
                                     "p-4 rounded-lg text-center font-semibold transition-all duration-200 aspect-square flex items-center justify-center",
                                     "border-2",
                                     selectedStyle === style.name
                                         ? "bg-primary/20 border-primary text-primary-foreground"
-                                        : "bg-card hover:bg-accent border-border"
+                                        : "bg-card hover:bg-accent border-border",
+                                    limitReached && "opacity-50 cursor-not-allowed"
                                 )}
                             >
                                 {style.name}
@@ -333,4 +359,3 @@ export function AnubisAvatarGenerator() {
             )}
         </div>
     );
-}
