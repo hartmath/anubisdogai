@@ -21,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const MAX_IMAGE_SIZE_BYTES = 4 * 1024 * 1024; // 4MB
 const MAX_IMAGE_DIMENSION = 1024; // 1024px
-const GENERATION_LIMIT = 5;
+const GENERATION_LIMIT = 10;
 const ONE_YEAR_IN_MS = 365 * 24 * 60 * 60 * 1000;
 const USAGE_STORAGE_KEY = 'anubis-avatar-usage';
 
