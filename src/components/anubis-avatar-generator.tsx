@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import {
     Upload,
@@ -27,6 +27,9 @@ const STYLES = [
 
 const MAX_IMAGE_SIZE_BYTES = 4 * 1024 * 1024; // 4MB
 const MAX_IMAGE_DIMENSION = 1024; // 1024px
+const GENERATION_LIMIT = 5;
+const STORAGE_KEY = "anubis-avatar-generations";
+
 
 // Helper function to resize images
 const resizeImage = (file: File): Promise<string> => {
@@ -86,10 +89,40 @@ export function AnubisAvatarGenerator() {
     const [progress, setProgress] = useState(0);
     const [selectedStyle, setSelectedStyle] = useState("Dark Gold");
     const [generationStarted, setGenerationStarted] = useState(false);
+    const [remainingGenerations, setRemainingGenerations] = useState(GENERATION_LIMIT);
+    const [generationLimitReached, setGenerationLimitReached] = useState(false);
+    
+    useEffect(() => {
+        try {
+            const storedData = localStorage.getItem(STORAGE_KEY);
+            if (storedData) {
+                const { count, date } = JSON.parse(storedData);
+                const today = new Date().toLocaleDateString();
+
+                if (date === today) {
+                    const remaining = GENERATION_LIMIT - count;
+                    setRemainingGenerations(remaining);
+                    if (remaining <= 0) {
+                        setGenerationLimitReached(true);
+                        setError(`You have reached your daily generation limit of ${GENERATION_LIMIT} images. Please try again tomorrow.`);
+                    }
+                } else {
+                    // Reset for a new day
+                    localStorage.removeItem(STORAGE_KEY);
+                }
+            }
+        } catch (e) {
+            console.error("Could not access local storage:", e);
+        }
+    }, []);
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
         if (file) {
+            if (generationLimitReached) {
+                setError(`You have reached your daily generation limit of ${GENERATION_LIMIT} images. Please try again tomorrow.`);
+                return;
+            }
             setError(null);
             setGeneratedImage(null);
             setGenerationStarted(false);
@@ -110,7 +143,7 @@ export function AnubisAvatarGenerator() {
                 setError("There was a problem processing your image. Please try another one.");
             }
         }
-    }, []);
+    }, [generationLimitReached]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -119,7 +152,7 @@ export function AnubisAvatarGenerator() {
     });
 
     const handleGenerate = async () => {
-        if (!originalImage) return;
+        if (!originalImage || generationLimitReached) return;
         setGenerationStarted(true);
         setIsLoading(true);
         setError(null);
@@ -144,6 +177,28 @@ export function AnubisAvatarGenerator() {
             setError(result.error);
         } else if (result.imageUrl) {
             setGeneratedImage(result.imageUrl);
+            // Handle generation limit tracking
+            try {
+                const today = new Date().toLocaleDateString();
+                const storedData = localStorage.getItem(STORAGE_KEY);
+                let newCount = 1;
+                if (storedData) {
+                    const { count, date } = JSON.parse(storedData);
+                    if (date === today) {
+                        newCount = count + 1;
+                    }
+                }
+                
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({ count: newCount, date: today }));
+                const remaining = GENERATION_LIMIT - newCount;
+                setRemainingGenerations(remaining);
+                if (remaining <= 0) {
+                    setGenerationLimitReached(true);
+                    setError(`You have reached your daily generation limit of ${GENERATION_LIMIT} images. Please try again tomorrow.`);
+                }
+            } catch (e) {
+                console.error("Could not update local storage:", e);
+            }
         }
         setIsLoading(false);
     };
@@ -166,6 +221,10 @@ export function AnubisAvatarGenerator() {
         setError(null);
         setProgress(0);
         setGenerationStarted(false);
+         // Don't reset the generation limit error
+        if (generationLimitReached) {
+            setError(`You have reached your daily generation limit of ${GENERATION_LIMIT} images. Please try again tomorrow.`);
+        }
     };
 
     return (
@@ -204,7 +263,7 @@ export function AnubisAvatarGenerator() {
             {error && (
                 <Alert variant="destructive" className="w-full max-w-2xl">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Generation Failed</AlertTitle>
+                    <AlertTitle>{generationLimitReached ? "Daily Limit Reached" : "Generation Failed"}</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
@@ -223,42 +282,40 @@ export function AnubisAvatarGenerator() {
                             />
                         </Card>
                     </div>
-                    {(generationStarted || generatedImage) && (
-                        <div className="flex flex-col items-center gap-2">
-                            <h2 className="text-2xl font-bold text-center font-headline">Generated</h2>
-                            <Card className="w-full aspect-square relative overflow-hidden bg-card/50">
-                                {isLoading && (
-                                    <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-4 text-white z-10">
-                                        <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                                        <p className="font-bold text-lg">Generating...</p>
-                                        <Progress value={progress} className="w-3/4" />
-                                    </div>
-                                )}
-                                {generatedImage ? (
-                                    <>
-                                        <Image
-                                            src={generatedImage}
-                                            alt="Generated Anubis Avatar"
-                                            fill
-                                            className="object-cover"
-                                        />
-                                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-4/5">
-                                            <Button onClick={handleDownload} size="lg" className="w-full">
-                                                <Download className="mr-2 h-5 w-5" />
-                                                Download (PNG)
-                                            </Button>
-                                        </div>
-                                    </>
-                                ) : (
-                                    isLoading && (
-                                        <div className="w-full h-full bg-secondary flex items-center justify-center">
-                                            <Image src="/headdress.png" alt="Headdress placeholder" width={256} height={256} className="opacity-10"/>
-                                        </div>
-                                    )
-                                )}
-                            </Card>
-                        </div>
-                    )}
+                    <div className="flex flex-col items-center gap-2">
+                         <h2 className="text-2xl font-bold text-center font-headline">Generated</h2>
+                         <Card className="w-full aspect-square relative overflow-hidden bg-card/50">
+                             {(isLoading || generationStarted) && (
+                                 <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-4 text-white z-10">
+                                     <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                                     <p className="font-bold text-lg">Generating...</p>
+                                     <Progress value={progress} className="w-3/4" />
+                                 </div>
+                             )}
+                             {generatedImage ? (
+                                 <>
+                                     <Image
+                                         src={generatedImage}
+                                         alt="Generated Anubis Avatar"
+                                         fill
+                                         className="object-cover"
+                                     />
+                                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-4/5">
+                                         <Button onClick={handleDownload} size="lg" className="w-full">
+                                             <Download className="mr-2 h-5 w-5" />
+                                             Download (PNG)
+                                         </Button>
+                                     </div>
+                                 </>
+                             ) : (
+                                (isLoading || generationStarted) && (
+                                     <div className="w-full h-full bg-secondary flex items-center justify-center">
+                                         <Image src="/headdress.png" alt="Headdress placeholder" width={256} height={256} className="opacity-10"/>
+                                     </div>
+                                 )
+                             )}
+                         </Card>
+                     </div>
                 </div>
             )}
 
@@ -268,7 +325,7 @@ export function AnubisAvatarGenerator() {
                  <CardHeader className="text-center">
                      <CardTitle className="text-3xl font-bold font-headline">Generate Your Avatar</CardTitle>
                      <p className="text-muted-foreground pt-2">
-                         Select a preset, then click generate to create your masterpiece.
+                        You have {remainingGenerations} generation{remainingGenerations !== 1 ? 's' : ''} left today.
                      </p>
                  </CardHeader>
                  <CardContent className="flex flex-col gap-8 items-center">
@@ -296,7 +353,7 @@ export function AnubisAvatarGenerator() {
                              onClick={handleGenerate}
                              size="lg"
                              className="w-full sm:w-auto px-10 py-6 text-lg"
-                             disabled={isLoading}
+                             disabled={isLoading || generationLimitReached}
                          >
                              <WandSparkles className="mr-2 h-5 w-5" />
                              Generate
