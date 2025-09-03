@@ -94,6 +94,9 @@ export function AnubisAvatarGenerator() {
     
     // Check generation limit on mount
     useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
         try {
             const storedCount = localStorage.getItem(STORAGE_KEY);
             if (storedCount) {
@@ -174,19 +177,21 @@ export function AnubisAvatarGenerator() {
         } else if (result.imageUrl) {
             setGeneratedImage(result.imageUrl);
             // Handle generation limit tracking in a separate effect
-            try {
-                const storedCount = localStorage.getItem(STORAGE_KEY);
-                const newCount = storedCount ? parseInt(storedCount, 10) + 1 : 1;
-                localStorage.setItem(STORAGE_KEY, newCount.toString());
+            if (typeof window !== 'undefined') {
+                try {
+                    const storedCount = localStorage.getItem(STORAGE_KEY);
+                    const newCount = storedCount ? parseInt(storedCount, 10) + 1 : 1;
+                    localStorage.setItem(STORAGE_KEY, newCount.toString());
 
-                const remaining = GENERATION_LIMIT - newCount;
-                setRemainingGenerations(remaining > 0 ? remaining : 0);
-                if (remaining <= 0) {
-                    setGenerationLimitReached(true);
-                    setError(`You have reached your generation limit of ${GENERATION_LIMIT} images. Please contact support for an upgrade.`);
+                    const remaining = GENERATION_LIMIT - newCount;
+                    setRemainingGenerations(remaining > 0 ? remaining : 0);
+                    if (remaining <= 0) {
+                        setGenerationLimitReached(true);
+                        setError(`You have reached your generation limit of ${GENERATION_LIMIT} images. Please contact support for an upgrade.`);
+                    }
+                } catch (e) {
+                    console.error("Could not update local storage:", e);
                 }
-            } catch (e) {
-                console.error("Could not update local storage:", e);
             }
         }
         setIsLoading(false);
