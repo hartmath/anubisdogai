@@ -85,12 +85,14 @@ export function AnubisAvatarGenerator() {
     const [error, setError] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
     const [selectedStyle, setSelectedStyle] = useState("Dark Gold");
+    const [generationStarted, setGenerationStarted] = useState(false);
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
         if (file) {
             setError(null);
             setGeneratedImage(null);
+            setGenerationStarted(false);
             try {
                 // Resize if the file is larger than our max dimension or a rough byte estimate
                  if (file.size > MAX_IMAGE_SIZE_BYTES / 2 || file.type !== 'image/jpeg') {
@@ -118,6 +120,7 @@ export function AnubisAvatarGenerator() {
 
     const handleGenerate = async () => {
         if (!originalImage) return;
+        setGenerationStarted(true);
         setIsLoading(true);
         setError(null);
         setGeneratedImage(null);
@@ -162,6 +165,7 @@ export function AnubisAvatarGenerator() {
         setIsLoading(false);
         setError(null);
         setProgress(0);
+        setGenerationStarted(false);
     };
 
     return (
@@ -219,40 +223,42 @@ export function AnubisAvatarGenerator() {
                             />
                         </Card>
                     </div>
-                    <div className="flex flex-col items-center gap-2">
-                        <h2 className="text-2xl font-bold text-center font-headline">Generated</h2>
-                        <Card className="w-full aspect-square relative overflow-hidden bg-card/50">
-                            {isLoading && (
-                                <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-4 text-white z-10">
-                                    <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                                    <p className="font-bold text-lg">Generating...</p>
-                                    <Progress value={progress} className="w-3/4" />
-                                </div>
-                            )}
-                            {generatedImage ? (
-                                <>
-                                    <Image
-                                        src={generatedImage}
-                                        alt="Generated Anubis Avatar"
-                                        fill
-                                        className="object-cover"
-                                    />
-                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-4/5">
-                                        <Button onClick={handleDownload} size="lg" className="w-full">
-                                            <Download className="mr-2 h-5 w-5" />
-                                            Download (PNG)
-                                        </Button>
+                    {(generationStarted || generatedImage) && (
+                        <div className="flex flex-col items-center gap-2">
+                            <h2 className="text-2xl font-bold text-center font-headline">Generated</h2>
+                            <Card className="w-full aspect-square relative overflow-hidden bg-card/50">
+                                {isLoading && (
+                                    <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-4 text-white z-10">
+                                        <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                                        <p className="font-bold text-lg">Generating...</p>
+                                        <Progress value={progress} className="w-3/4" />
                                     </div>
-                                </>
-                            ) : (
-                                !isLoading && (
-                                    <div className="w-full h-full bg-secondary flex items-center justify-center">
-                                        <Image src="/headdress.png" alt="Headdress placeholder" width={256} height={256} className="opacity-10"/>
-                                    </div>
-                                )
-                            )}
-                        </Card>
-                    </div>
+                                )}
+                                {generatedImage ? (
+                                    <>
+                                        <Image
+                                            src={generatedImage}
+                                            alt="Generated Anubis Avatar"
+                                            fill
+                                            className="object-cover"
+                                        />
+                                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-4/5">
+                                            <Button onClick={handleDownload} size="lg" className="w-full">
+                                                <Download className="mr-2 h-5 w-5" />
+                                                Download (PNG)
+                                            </Button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    isLoading && (
+                                        <div className="w-full h-full bg-secondary flex items-center justify-center">
+                                            <Image src="/headdress.png" alt="Headdress placeholder" width={256} height={256} className="opacity-10"/>
+                                        </div>
+                                    )
+                                )}
+                            </Card>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -305,5 +311,3 @@ export function AnubisAvatarGenerator() {
         </div>
     );
 }
-
-    
