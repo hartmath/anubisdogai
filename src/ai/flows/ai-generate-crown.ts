@@ -41,13 +41,19 @@ const aiGenerateCrownFlow = ai.defineFlow(
   async (input) => {
     
     const {media} = await ai.generate({
-      model: 'googleai/imagen-2.0-fast-image-generate-001',
-      prompt: `Generate an image of an ancient Egyptian pharaoh's crown (a Nemes headdress).
-      The crown should have alternating blue and gold stripes, similar to Tutankhamun's.
-      The image should be of ONLY the crown, with a transparent background.
-      The style should be: ${input.style}, digital art.
-      The crown should be facing forward.
+      prompt: `Task: Generate ONLY an image of an ancient Egyptian pharaoh's crown (a Nemes headdress).
+      
+      Instructions:
+      - The output MUST be an image, not text.
+      - The crown should have alternating blue and gold stripes, similar to Tutankhamun's.
+      - The image must contain ONLY the crown.
+      - The background of the image MUST be transparent.
+      - The crown must be facing forward.
+      - The artistic style should be: ${input.style}, digital art.
       `,
+      config: {
+        responseModalities: ['IMAGE'],
+      },
     });
 
     if (!media) {
