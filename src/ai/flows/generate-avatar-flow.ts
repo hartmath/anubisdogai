@@ -36,10 +36,10 @@ const generateAvatarFlow = ai.defineFlow(
   },
   async (input) => {
     const { media } = await ai.generate({
-        model: 'googleai/gemini-1.5-flash',
-        prompt: [
-            {
-              text: `You are an expert ancient Egyptian artist. Your task is to transform a user's photo by adding a photorealistic Anubis headdress.
+      model: 'googleai/gemini-1.5-flash',
+      prompt: [
+        {
+          text: `You are an expert ancient Egyptian artist. Your task is to transform a user's photo by adding a photorealistic Anubis headdress.
               
               Instructions:
               1. Analyze the input photo to identify the person's head, including its position, angle, and lighting.
@@ -47,12 +47,12 @@ const generateAvatarFlow = ai.defineFlow(
               3. The headdress should look realistic and seamlessly integrate with the photo's lighting and shadows.
               4. Do NOT modify the person's face or the background. Only add the headdress.
               5. Output only the final, modified image. Do not output text or any other content.`,
-            },
-            { media: { url: input.photoDataUri } },
-          ],
-        config: {
-            responseModalities: ['IMAGE'],
         },
+        { media: { url: input.photoDataUri } },
+      ],
+      config: {
+        responseModalities: ['IMAGE'],
+      },
     });
 
     if (!media || !media.url) {
