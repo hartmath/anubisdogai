@@ -27,6 +27,7 @@ const styles = [
     { name: "Dark Gold" },
     { name: "Cyberpunk Blue" },
     { name: "Cosmic Purple" },
+    { name: "Classic Anubis" },
 ];
 
 // Helper function to resize images
@@ -195,29 +196,6 @@ export function AnubisAvatarGenerator() {
                 </div>
             )}
             
-            {originalImage && (
-                 <div className="w-full max-w-xl text-center">
-                    <h2 className="text-2xl font-bold font-headline mb-4">Select a Style</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {styles.map((style) => (
-                            <button
-                                key={style.name}
-                                onClick={() => setSelectedStyle(style.name)}
-                                className={cn(
-                                    "p-4 rounded-lg text-center font-semibold transition-all duration-200 aspect-square flex items-center justify-center",
-                                    "border-2",
-                                    selectedStyle === style.name
-                                        ? "bg-primary/20 border-primary text-primary-foreground"
-                                        : "bg-card hover:bg-accent border-border"
-                                )}
-                            >
-                                {style.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
             {error && (
                 <Alert variant="destructive" className="w-full max-w-2xl">
                     <AlertTriangle className="h-4 w-4" />
@@ -262,6 +240,29 @@ export function AnubisAvatarGenerator() {
                              )}
                          </Card>
                      </div>
+                </div>
+            )}
+
+            {originalImage && (
+                 <div className="w-full max-w-xl text-center">
+                    <h2 className="text-2xl font-bold font-headline mb-4">Select a Style</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        {styles.map((style) => (
+                            <button
+                                key={style.name}
+                                onClick={() => setSelectedStyle(style.name)}
+                                className={cn(
+                                    "p-4 rounded-lg text-center font-semibold transition-all duration-200 aspect-square flex items-center justify-center",
+                                    "border-2",
+                                    selectedStyle === style.name
+                                        ? "bg-primary/20 border-primary text-primary-foreground"
+                                        : "bg-card hover:bg-accent border-border"
+                                )}
+                            >
+                                {style.name}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
 

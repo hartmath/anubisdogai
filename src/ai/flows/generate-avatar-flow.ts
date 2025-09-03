@@ -34,14 +34,14 @@ export type GenerateAvatarOutput = z.infer<typeof GenerateAvatarOutputSchema>;
 
 const stylePrompts = {
   'Neon Glow':
-    'The headdress should be made of sleek, black material with glowing neon blue and pink trim that casts a vibrant light on the person.',
+    'The headdress should be made of sleek, black material with glowing neon blue and pink trim. The entire image should have a dark, moody atmosphere with vibrant neon highlights, casting a glow on the person and the background.',
   'Dark Gold':
-    'The headdress should be made of ancient, dark gold with intricate, traditional Egyptian carvings. It should have a subtle, regal glow.',
+    'The headdress should be made of ancient, dark gold with intricate carvings. The overall image should have a regal and ancient feel, with warm, dramatic lighting, deep shadows, and a subtle golden sheen over everything.',
   'Cyberpunk Blue':
-    'The headdress should look futuristic and cyberpunk, with glowing blue circuits, holographic elements, and a metallic, chrome-like finish.',
+    'The headdress should look futuristic and cyberpunk, with glowing blue circuits and holographic elements. The entire scene should be transformed into a rainy, neon-lit cyberpunk city at night, with the blue light from the headdress reflecting on wet surfaces.',
   'Cosmic Purple':
-    'The headdress should look like it is forged from a swirling purple galaxy, with tiny, glittering stars and cosmic dust. It should emit a soft, ethereal purple light.',
-  'Classic Anubis': `Generate a classic Egyptian pharaoh's headdress (a Nemes crown). The headdress MUST have alternating blue and gold horizontal stripes. The headdress MUST feature a cobra emblem (uraeus) in the center, positioned above the brow.`,
+    'The headdress and the person should look like they are forged from a swirling purple galaxy with tiny, glittering stars. The background should be a cosmic nebula, and the person should have a soft, ethereal purple glow.',
+  'Classic Anubis': `Generate a classic Egyptian pharaoh's headdress (a Nemes crown). The headdress MUST have alternating blue and gold horizontal stripes and a cobra emblem (uraeus). The background should be transformed into an ancient Egyptian tomb wall with hieroglyphics. The overall lighting should be torch-lit and dramatic. Do not change the person's face.`,
 };
 
 const generateAvatarFlow = ai.defineFlow(
@@ -62,14 +62,14 @@ const generateAvatarFlow = ai.defineFlow(
           media: { url: input.photoDataUri },
         },
         {
-          text: `You are an expert ancient Egyptian artist with a modern twist. Your task is to transform a user's photo by adding a photorealistic Egyptian headdress in a specific style.
-              
+          text: `You are an expert digital artist. Your task is to transform a user's photo by adding a photorealistic Egyptian headdress and reimagining the entire image in a specific style.
+
               Instructions:
-              1. Analyze the input photo to identify the person's head, including its position, angle, and lighting.
-              2. Generate a headdress that perfectly fits the person's head.
-              3. Style of the headdress: ${stylePrompt}
-              4. The headdress should look realistic and seamlessly integrate with the photo's lighting and shadows.
-              5. Do NOT modify the person's face or the background. Only add the headdress.
+              1. Analyze the input photo to identify the person, their face, and their pose.
+              2. Keep the person's face and basic pose recognizable.
+              3. Generate a headdress that perfectly fits the person's head.
+              4. Apply the following style to the headdress AND the entire image (background, lighting, and mood): ${stylePrompt}
+              5. The final image should be a seamless, artistic composition.
               6. Output only the final, modified image. Do not output text or any other content.`,
         },
       ],
