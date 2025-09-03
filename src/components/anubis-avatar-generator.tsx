@@ -12,7 +12,7 @@ import {
 import { useDropzone } from "react-dropzone";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { generateAvatar } from "@/app/actions";
 import { Progress } from "@/components/ui/progress";
@@ -194,46 +194,48 @@ export function AnubisAvatarGenerator() {
 
             {/* Generation Controls */}
             {originalImage && (
-                <div className="flex flex-col items-center gap-8 w-full max-w-xl">
-                    <div className="text-center">
-                        <h3 className="text-3xl font-bold font-headline">Generate Your Avatar</h3>
-                        <p className="text-muted-foreground mt-2">
-                            Select a preset, then click generate to create your masterpiece.
-                        </p>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-                        {STYLES.map((style) => (
-                            <Button
-                                key={style}
-                                variant={selectedStyle === style ? "default" : "secondary"}
-                                onClick={() => setSelectedStyle(style)}
-                                className={cn(
-                                    "h-20 text-lg font-bold transition-all duration-300",
-                                    selectedStyle === style
-                                        ? "border-2 border-primary-foreground"
-                                        : "border-2 border-transparent"
-                                )}
-                            >
-                                {style}
-                            </Button>
-                        ))}
-                    </div>
-
-                    <div className="flex gap-4">
-                        <Button
-                            onClick={handleGenerate}
-                            size="lg"
-                            className="px-10 py-6 text-lg"
-                            disabled={isLoading}
-                        >
-                            <WandSparkles className="mr-2 h-5 w-5" />
-                            Generate
-                        </Button>
-                        <Button onClick={handleReset} variant="outline" size="lg" className="px-10 py-6 text-lg">
-                            Start Over
-                        </Button>
-                    </div>
-                </div>
+                 <Card className="w-full max-w-xl">
+                 <CardHeader className="text-center">
+                     <CardTitle className="text-3xl font-bold font-headline">Generate Your Avatar</CardTitle>
+                     <p className="text-muted-foreground pt-2">
+                         Select a preset, then click generate to create your masterpiece.
+                     </p>
+                 </CardHeader>
+                 <CardContent className="flex flex-col gap-8 items-center">
+                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
+                         {STYLES.map((style) => (
+                             <Button
+                                 key={style}
+                                 variant={selectedStyle === style ? "default" : "secondary"}
+                                 onClick={() => setSelectedStyle(style)}
+                                 className={cn(
+                                     "h-20 text-lg font-bold transition-all duration-300",
+                                     selectedStyle === style
+                                         ? "border-2 border-primary-foreground/50"
+                                         : ""
+                                 )}
+                             >
+                                 {style}
+                             </Button>
+                         ))}
+                     </div>
+ 
+                     <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                         <Button
+                             onClick={handleGenerate}
+                             size="lg"
+                             className="w-full sm:w-auto px-10 py-6 text-lg"
+                             disabled={isLoading}
+                         >
+                             <WandSparkles className="mr-2 h-5 w-5" />
+                             Generate
+                         </Button>
+                         <Button onClick={handleReset} variant="outline" size="lg" className="w-full sm:w-auto px-10 py-6 text-lg">
+                             Start Over
+                         </Button>
+                     </div>
+                 </CardContent>
+             </Card>
             )}
         </div>
     );
