@@ -27,10 +27,15 @@ export async function generateAvatar(
     return { imageUrl: result.stylizedAvatarDataUri };
   } catch (e) {
     console.error(e);
-    const errorMessage =
-      e instanceof Error
-        ? e.message
-        : "An unknown error occurred during avatar generation.";
+    let errorMessage = "An unknown error occurred during avatar generation.";
+    if (e instanceof Error) {
+        if (e.message.includes('503') && e.message.includes('overloaded')) {
+            errorMessage = "The AI is currently experiencing high demand. Please wait a moment and try again.";
+        } else {
+            errorMessage = e.message;
+        }
+    }
+    
     return {
       error: `Avatar generation failed. ${errorMessage}`,
     };
