@@ -81,6 +81,44 @@ const resizeImage = (file: File): Promise<string> => {
     });
 };
 
+const applyWatermark = (base64Image: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const avatarImg = new window.Image();
+        avatarImg.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = avatarImg.width;
+            canvas.height = avatarImg.height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return reject('Could not get canvas context');
+
+            // Draw the generated avatar
+            ctx.drawImage(avatarImg, 0, 0);
+
+            const logoImg = new window.Image();
+            logoImg.onload = () => {
+                // Scale logo to be 15% of the avatar's width
+                const logoWidth = canvas.width * 0.15;
+                const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
+                const margin = canvas.width * 0.03;
+
+                // Position logo in the bottom right corner
+                const x = canvas.width - logoWidth - margin;
+                const y = canvas.height - logoHeight - margin;
+
+                ctx.globalAlpha = 0.5; // Set watermark opacity
+                ctx.drawImage(logoImg, x, y, logoWidth, logoHeight);
+                ctx.globalAlpha = 1.0; // Reset opacity
+
+                resolve(canvas.toDataURL('image/png'));
+            };
+            logoImg.onerror = reject;
+            logoImg.src = '/logo.png';
+        };
+        avatarImg.onerror = reject;
+        avatarImg.src = base64Image;
+    });
+};
+
 
 export function AnubisAvatarGenerator() {
     const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -157,7 +195,9 @@ export function AnubisAvatarGenerator() {
         try {
             const result = await generateAvatarAction(originalImage, selectedStyle);
             if (result.photoDataUri) {
-                setGeneratedImage(result.photoDataUri);
+                const watermarkedImage = await applyWatermark(result.photoDataUri);
+                setGeneratedImage(watermarkedImage);
+
                  toast({
                     title: "Avatar Generated!",
                     description: "Your Anubis avatar is ready.",
