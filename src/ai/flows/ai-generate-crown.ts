@@ -32,6 +32,16 @@ export async function aiGenerateCrown(input: AIGenerateCrownInput): Promise<AIGe
   return aiGenerateCrownFlow(input);
 }
 
+const crownPrompt = ai.definePrompt(
+  {
+    name: 'crownPrompt',
+    model: 'googleai/gemini-1.5-flash-preview',
+    input: { schema: AIGenerateCrownInputSchema },
+    prompt: `Generate ONLY an image of an ancient Egyptian pharaoh's crown (a Nemes headdress), with alternating blue and gold stripes. The image MUST have a transparent background. The crown MUST be facing forward. The image should be in a {{{style}}}, digital art style. Do not output any text, only the image.`,
+  }
+);
+
+
 const aiGenerateCrownFlow = ai.defineFlow(
   {
     name: 'aiGenerateCrownFlow',
@@ -40,10 +50,8 @@ const aiGenerateCrownFlow = ai.defineFlow(
   },
   async (input) => {
     
-    const {media} = await ai.generate({
-      model: 'googleai/gemini-1.5-flash-preview',
-      prompt: `Generate ONLY an image of an ancient Egyptian pharaoh's crown (a Nemes headdress), with alternating blue and gold stripes. The image MUST have a transparent background. The crown MUST be facing forward. The image should be in a ${input.style}, digital art style. Do not output any text, only the image.`,
-    });
+    const {output} = await crownPrompt(input);
+    const media = output!.media;
 
     if (!media) {
       throw new Error('no media returned from crown generation');
@@ -52,3 +60,4 @@ const aiGenerateCrownFlow = ai.defineFlow(
     return {crownDataUri: media.url};
   }
 );
+
