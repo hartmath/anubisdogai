@@ -22,6 +22,12 @@ import { useToast } from "@/hooks/use-toast";
 const MAX_IMAGE_SIZE_BYTES = 4 * 1024 * 1024; // 4MB
 const MAX_IMAGE_DIMENSION = 1024; // 1024px
 
+const styles = [
+    { name: "Neon Glow" },
+    { name: "Dark Gold" },
+    { name: "Cyberpunk Blue" },
+    { name: "Cosmic Purple" },
+];
 
 // Helper function to resize images
 const resizeImage = (file: File): Promise<string> => {
@@ -76,6 +82,7 @@ export function AnubisAvatarGenerator() {
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [selectedStyle, setSelectedStyle] = useState("Cosmic Purple");
     
     const { toast } = useToast();
 
@@ -115,7 +122,7 @@ export function AnubisAvatarGenerator() {
         setGeneratedImage(null);
 
         try {
-            const result = await generateAvatarAction(originalImage);
+            const result = await generateAvatarAction(originalImage, selectedStyle);
             if (result.photoDataUri) {
                 setGeneratedImage(result.photoDataUri);
                  toast({
@@ -185,6 +192,29 @@ export function AnubisAvatarGenerator() {
                     <p className="text-sm text-muted-foreground">
                         PNG, JPG, WEBP (Max. 10MB)
                     </p>
+                </div>
+            )}
+            
+            {originalImage && (
+                 <div className="w-full max-w-xl text-center">
+                    <h2 className="text-2xl font-bold font-headline mb-4">Select a Style</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {styles.map((style) => (
+                            <button
+                                key={style.name}
+                                onClick={() => setSelectedStyle(style.name)}
+                                className={cn(
+                                    "p-4 rounded-lg text-center font-semibold transition-all duration-200 aspect-square flex items-center justify-center",
+                                    "border-2",
+                                    selectedStyle === style.name
+                                        ? "bg-primary/20 border-primary text-primary-foreground"
+                                        : "bg-card hover:bg-accent border-border"
+                                )}
+                            >
+                                {style.name}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
 
