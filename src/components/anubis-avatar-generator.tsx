@@ -299,7 +299,7 @@ export function AnubisAvatarGenerator() {
                              ) : (
                                 generationStarted && (
                                      <div className="w-full h-full bg-secondary flex items-center justify-center">
-                                         <Image src="/headdress.png" alt="Headdress placeholder" width={256} height={256} className="opacity-10"/>
+                                         <Image src="/helmet.png" alt="Headdress placeholder" width={256} height={256} className="opacity-10"/>
                                      </div>
                                  )
                              )}
