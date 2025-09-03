@@ -25,6 +25,59 @@ const STYLES = [
     "Cosmic Purple",
 ];
 
+const MAX_IMAGE_SIZE_BYTES = 4 * 1024 * 1024; // 4MB
+const MAX_IMAGE_DIMENSION = 1024; // 1024px
+
+// Helper function to resize images
+const resizeImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = document.createElement("img");
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                let { width, height } = img;
+
+                if (width > height) {
+                    if (width > MAX_IMAGE_DIMENSION) {
+                        height = Math.round((height * MAX_IMAGE_DIMENSION) / width);
+                        width = MAX_IMAGE_DIMENSION;
+                    }
+                } else {
+                    if (height > MAX_IMAGE_DIMENSION) {
+                        width = Math.round((width * MAX_IMAGE_DIMENSION) / height);
+                        height = MAX_IMAGE_DIMENSION;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                if (!ctx) {
+                    return reject(new Error("Could not get canvas context"));
+                }
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Start with high quality, and reduce if the size is still too large
+                let quality = 0.9;
+                let dataUrl = canvas.toDataURL("image/jpeg", quality);
+
+                while (dataUrl.length > MAX_IMAGE_SIZE_BYTES && quality > 0.3) {
+                    quality -= 0.1;
+                    dataUrl = canvas.toDataURL("image/jpeg", quality);
+                }
+                
+                resolve(dataUrl);
+            };
+            img.onerror = reject;
+            img.src = event.target?.result as string;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+};
+
+
 export function AnubisAvatarGenerator() {
     const [originalImage, setOriginalImage] = useState<string | null>(null);
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -33,23 +86,34 @@ export function AnubisAvatarGenerator() {
     const [progress, setProgress] = useState(0);
     const [selectedStyle, setSelectedStyle] = useState("Dark Gold");
 
-    const onDrop = useCallback((acceptedFiles: File[]) => {
+    const onDrop = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setOriginalImage(e.target?.result as string);
-                setGeneratedImage(null);
-                setError(null);
-            };
-            reader.readAsDataURL(file);
+            setError(null);
+            setGeneratedImage(null);
+            try {
+                // Resize if the file is larger than our max dimension or a rough byte estimate
+                 if (file.size > MAX_IMAGE_SIZE_BYTES / 2 || file.type !== 'image/jpeg') {
+                    const resizedDataUrl = await resizeImage(file);
+                    setOriginalImage(resizedDataUrl);
+                } else {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        setOriginalImage(e.target?.result as string);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            } catch (err) {
+                console.error("Image processing error:", err);
+                setError("There was a problem processing your image. Please try another one.");
+            }
         }
     }, []);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp"] },
-        maxSize: 10 * 1024 * 1024, // 10MB
+        maxSize: 10 * 1024 * 1024, // 10MB limit on the dropzone itself
     });
 
     const handleGenerate = async () => {
@@ -240,3 +304,5 @@ export function AnubisAvatarGenerator() {
         </div>
     );
 }
+
+    
