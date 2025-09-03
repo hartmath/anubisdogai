@@ -94,21 +94,14 @@ export function AnubisAvatarGenerator() {
     
     useEffect(() => {
         try {
-            const storedData = localStorage.getItem(STORAGE_KEY);
-            if (storedData) {
-                const { count, date } = JSON.parse(storedData);
-                const today = new Date().toLocaleDateString();
-
-                if (date === today) {
-                    const remaining = GENERATION_LIMIT - count;
-                    setRemainingGenerations(remaining);
-                    if (remaining <= 0) {
-                        setGenerationLimitReached(true);
-                        setError(`You have reached your daily generation limit of ${GENERATION_LIMIT} images. Please try again tomorrow.`);
-                    }
-                } else {
-                    // Reset for a new day
-                    localStorage.removeItem(STORAGE_KEY);
+            const storedCount = localStorage.getItem(STORAGE_KEY);
+            if (storedCount) {
+                const count = parseInt(storedCount, 10);
+                const remaining = GENERATION_LIMIT - count;
+                setRemainingGenerations(remaining);
+                if (remaining <= 0) {
+                    setGenerationLimitReached(true);
+                    setError(`You have reached your generation limit of ${GENERATION_LIMIT} images. Please contact support for an upgrade.`);
                 }
             }
         } catch (e) {
@@ -120,7 +113,7 @@ export function AnubisAvatarGenerator() {
         const file = acceptedFiles[0];
         if (file) {
             if (generationLimitReached) {
-                setError(`You have reached your daily generation limit of ${GENERATION_LIMIT} images. Please try again tomorrow.`);
+                setError(`You have reached your generation limit of ${GENERATION_LIMIT} images. Please contact support for an upgrade.`);
                 return;
             }
             setError(null);
@@ -179,22 +172,18 @@ export function AnubisAvatarGenerator() {
             setGeneratedImage(result.imageUrl);
             // Handle generation limit tracking
             try {
-                const today = new Date().toLocaleDateString();
-                const storedData = localStorage.getItem(STORAGE_KEY);
+                const storedCount = localStorage.getItem(STORAGE_KEY);
                 let newCount = 1;
-                if (storedData) {
-                    const { count, date } = JSON.parse(storedData);
-                    if (date === today) {
-                        newCount = count + 1;
-                    }
+                if (storedCount) {
+                    newCount = parseInt(storedCount, 10) + 1;
                 }
                 
-                localStorage.setItem(STORAGE_KEY, JSON.stringify({ count: newCount, date: today }));
+                localStorage.setItem(STORAGE_KEY, newCount.toString());
                 const remaining = GENERATION_LIMIT - newCount;
                 setRemainingGenerations(remaining);
                 if (remaining <= 0) {
                     setGenerationLimitReached(true);
-                    setError(`You have reached your daily generation limit of ${GENERATION_LIMIT} images. Please try again tomorrow.`);
+                    setError(`You have reached your generation limit of ${GENERATION_LIMIT} images. Please contact support for an upgrade.`);
                 }
             } catch (e) {
                 console.error("Could not update local storage:", e);
@@ -223,7 +212,7 @@ export function AnubisAvatarGenerator() {
         setGenerationStarted(false);
          // Don't reset the generation limit error
         if (generationLimitReached) {
-            setError(`You have reached your daily generation limit of ${GENERATION_LIMIT} images. Please try again tomorrow.`);
+            setError(`You have reached your generation limit of ${GENERATION_LIMIT} images. Please contact support for an upgrade.`);
         }
     };
 
@@ -263,7 +252,7 @@ export function AnubisAvatarGenerator() {
             {error && (
                 <Alert variant="destructive" className="w-full max-w-2xl">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>{generationLimitReached ? "Daily Limit Reached" : "Generation Failed"}</AlertTitle>
+                    <AlertTitle>{generationLimitReached ? "Generation Limit Reached" : "Generation Failed"}</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
@@ -285,7 +274,7 @@ export function AnubisAvatarGenerator() {
                     <div className="flex flex-col items-center gap-2">
                          <h2 className="text-2xl font-bold text-center font-headline">Generated</h2>
                          <Card className="w-full aspect-square relative overflow-hidden bg-card/50">
-                             {(isLoading || generationStarted) && (
+                             {generationStarted && (
                                  <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-4 text-white z-10">
                                      <Loader2 className="w-12 h-12 animate-spin text-primary" />
                                      <p className="font-bold text-lg">Generating...</p>
@@ -308,7 +297,7 @@ export function AnubisAvatarGenerator() {
                                      </div>
                                  </>
                              ) : (
-                                (isLoading || generationStarted) && (
+                                generationStarted && (
                                      <div className="w-full h-full bg-secondary flex items-center justify-center">
                                          <Image src="/headdress.png" alt="Headdress placeholder" width={256} height={256} className="opacity-10"/>
                                      </div>
@@ -324,9 +313,11 @@ export function AnubisAvatarGenerator() {
                  <Card className="w-full max-w-xl">
                  <CardHeader className="text-center">
                      <CardTitle className="text-3xl font-bold font-headline">Generate Your Avatar</CardTitle>
-                     <p className="text-muted-foreground pt-2">
-                        You have {remainingGenerations} generation{remainingGenerations !== 1 ? 's' : ''} left today.
-                     </p>
+                     {!generationLimitReached && (
+                        <p className="text-muted-foreground pt-2">
+                            You have {remainingGenerations} generation{remainingGenerations !== 1 ? 's' : ''} left.
+                        </p>
+                     )}
                  </CardHeader>
                  <CardContent className="flex flex-col gap-8 items-center">
                     <div className="flex flex-wrap justify-center gap-4 w-full">
