@@ -294,6 +294,13 @@ export function AnubisAvatarGenerator() {
                                          fill
                                          className="object-cover"
                                      />
+                                     <Image
+                                        src="/logo.png"
+                                        alt="Watermark"
+                                        width={64}
+                                        height={64}
+                                        className="absolute bottom-4 right-4 opacity-50 pointer-events-none"
+                                     />
                                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-4/5">
                                          <Button onClick={handleDownload} size="lg" className="w-full">
                                              <Download className="mr-2 h-5 w-5" />

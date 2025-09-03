@@ -1,6 +1,8 @@
 
 "use server";
 
+import { aiStylizeAvatar } from "@/ai/flows/ai-stylize-avatar";
+
 export async function generateAvatar(
   photoDataUri: string,
   shouldStylize: boolean
@@ -10,18 +12,13 @@ export async function generateAvatar(
   }
 
   try {
-    // The AI functionality is temporarily disabled to resolve build issues.
-    // We will return the original image for now.
     if (!shouldStylize) {
         return { imageUrl: photoDataUri };
     }
     
-    // Simulate a delay to mimic AI processing
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const result = await aiStylizeAvatar({ photoDataUri, shouldStylize });
 
-    // Since the AI stylization is disabled, we'll return the original photo.
-    // A more sophisticated placeholder could be used here in a real scenario.
-    return { imageUrl: photoDataUri };
+    return { imageUrl: result.stylizedAvatarDataUri };
 
   } catch (e) {
     console.error(e);

@@ -9,7 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const AIStylizeAvatarInputSchema = z.object({
   photoDataUri: z
@@ -47,7 +47,7 @@ const aiStylizeAvatarFlow = ai.defineFlow(
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
       prompt: [
         {media: {url: input.photoDataUri}},
-        {text: 'Upon this face, a sacred helm you\'ll place. With ancient grace and digital art, create a modern masterpiece, a work of heart. Let the features of the original brightly shine, a modern pharaoh, a portrait so divine.'},
+        {text: 'Place an ancient Egyptian Anubis helmet on the person\'s head. The helmet should be ornate, with gold and black accents. The style should be a modern, digital art masterpiece, blending ancient aesthetics with a futuristic feel. Ensure the original facial features are clearly visible and recognizable under the helmet.'},
       ],
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
