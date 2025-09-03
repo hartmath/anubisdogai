@@ -4,7 +4,6 @@
  * This file is the single source of truth for the Genkit dependency.
  * By using this file, you can easily swap out the model provider for all flows.
  */
-'use server';
 
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
