@@ -36,7 +36,7 @@ const generateAvatarFlow = ai.defineFlow(
   },
   async (input) => {
     const { media } = await ai.generate({
-        model: 'googleai/gemini-1.5-flash-preview',
+        model: 'googleai/gemini-1.5-flash',
         prompt: [
             {
               text: `You are an expert ancient Egyptian artist. Your task is to transform a user's photo by adding a photorealistic Anubis headdress.
