@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import { Orbitron, Space_Grotesk } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const orbitron = Orbitron({
@@ -43,6 +44,7 @@ export default function RootLayout({
       <body className="antialiased font-sans">
         {children}
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );
