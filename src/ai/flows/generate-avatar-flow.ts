@@ -28,27 +28,6 @@ const GenerateAvatarOutputSchema = z.object({
 });
 export type GenerateAvatarOutput = z.infer<typeof GenerateAvatarOutputSchema>;
 
-const avatarPrompt = ai.definePrompt({
-  name: 'anubisAvatarPrompt',
-  input: { schema: GenerateAvatarInputSchema },
-  prompt: [
-    {
-      text: `You are an expert ancient Egyptian artist. Your task is to transform a user's photo by adding a photorealistic Anubis headdress.
-      
-      Instructions:
-      1. Analyze the input photo to identify the person's head, including its position, angle, and lighting.
-      2. Generate an ornate, black and gold Anubis-style headdress that perfectly fits the person's head.
-      3. The headdress should look realistic and seamlessly integrate with the photo's lighting and shadows.
-      4. Do NOT modify the person's face or the background. Only add the headdress.
-      5. Output only the final, modified image. Do not output text or any other content.`,
-    },
-    { media: { url: '{{{photoDataUri}}}' } },
-  ],
-  config: {
-    responseModalities: ['IMAGE'],
-  },
-});
-
 const generateAvatarFlow = ai.defineFlow(
   {
     name: 'generateAvatarFlow',
@@ -58,9 +37,22 @@ const generateAvatarFlow = ai.defineFlow(
   async (input) => {
     const { media } = await ai.generate({
         model: 'googleai/gemini-1.5-flash-preview',
-        prompt: avatarPrompt.prompt,
-        config: avatarPrompt.config,
-        input: input,
+        prompt: [
+            {
+              text: `You are an expert ancient Egyptian artist. Your task is to transform a user's photo by adding a photorealistic Anubis headdress.
+              
+              Instructions:
+              1. Analyze the input photo to identify the person's head, including its position, angle, and lighting.
+              2. Generate an ornate, black and gold Anubis-style headdress that perfectly fits the person's head.
+              3. The headdress should look realistic and seamlessly integrate with the photo's lighting and shadows.
+              4. Do NOT modify the person's face or the background. Only add the headdress.
+              5. Output only the final, modified image. Do not output text or any other content.`,
+            },
+            { media: { url: input.photoDataUri } },
+          ],
+        config: {
+            responseModalities: ['IMAGE'],
+        },
     });
 
     if (!media || !media.url) {
