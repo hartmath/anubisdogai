@@ -197,7 +197,7 @@ export function AnubisAvatarGenerator() {
         <div className="w-full max-w-4xl mx-auto flex flex-col items-center gap-12">
             <div className="text-center">
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter text-primary font-headline">
-                    Anubis Avatar Alchemist
+                    Transform Your Profile Picture
                 </h1>
                 <p className="max-w-2xl mx-auto mt-4 text-md sm:text-lg text-muted-foreground">
                    Upload your photo and our AI will bestow upon you the headdress of Anubis.
