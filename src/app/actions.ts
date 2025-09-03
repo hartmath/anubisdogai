@@ -1,24 +1,20 @@
 
-"use server";
+'use server';
 
-import { aiStylizeAvatar } from "@/ai/flows/ai-stylize-avatar";
+import { aiGenerateCrown } from "@/ai/flows/ai-generate-crown";
 
-export async function generateAvatar(
-  photoDataUri: string,
-  shouldStylize: boolean
+export async function generateCrown(
+  style: string,
 ): Promise<{ imageUrl?: string; error?: string }> {
-  if (!photoDataUri) {
-    return { error: "No photo provided." };
-  }
 
   try {
-    const result = await aiStylizeAvatar({ photoDataUri, shouldStylize });
+    const result = await aiGenerateCrown({ style });
 
-    return { imageUrl: result.stylizedAvatarDataUri };
+    return { imageUrl: result.crownDataUri };
 
   } catch (e) {
     console.error(e);
-    let errorMessage = "An unknown error occurred during avatar generation.";
+    let errorMessage = "An unknown error occurred during crown generation.";
     if (e instanceof Error) {
         if (e.message.includes('503') && e.message.includes('overloaded')) {
             errorMessage = "The AI is currently experiencing high demand. Please wait a moment and try again.";
@@ -28,7 +24,7 @@ export async function generateAvatar(
     }
     
     return {
-      error: `Avatar generation failed. ${errorMessage}`,
+      error: `Crown generation failed. ${errorMessage}`,
     };
   }
 }

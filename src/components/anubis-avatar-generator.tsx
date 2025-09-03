@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
 import {
     Upload,
@@ -10,11 +11,13 @@ import {
     WandSparkles,
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
+import Draggable from 'react-draggable';
+
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { generateAvatar } from "@/app/actions";
+import { generateCrown } from "@/app/actions";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
@@ -84,6 +87,7 @@ const resizeImage = (file: File): Promise<string> => {
 export function AnubisAvatarGenerator() {
     const [originalImage, setOriginalImage] = useState<string | null>(null);
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+    const [crownImage, setCrownImage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
@@ -91,7 +95,12 @@ export function AnubisAvatarGenerator() {
     const [generationStarted, setGenerationStarted] = useState(false);
     const [remainingGenerations, setRemainingGenerations] = useState(GENERATION_LIMIT);
     const [generationLimitReached, setGenerationLimitReached] = useState(false);
+    const [crownPosition, setCrownPosition] = useState({ x: 0, y: 0 });
     
+    const originalImageRef = useRef<HTMLImageElement>(null);
+    const finalImageContainerRef = useRef<HTMLDivElement>(null);
+
+
     // Check generation limit on mount
     useEffect(() => {
         if (typeof window === 'undefined') {
@@ -123,6 +132,7 @@ export function AnubisAvatarGenerator() {
                 return;
             }
             setError(null);
+            setCrownImage(null);
             setGeneratedImage(null);
             setGenerationStarted(false);
             try {
@@ -155,6 +165,7 @@ export function AnubisAvatarGenerator() {
         setGenerationStarted(true);
         setIsLoading(true);
         setError(null);
+        setCrownImage(null);
         setGeneratedImage(null);
         setProgress(0);
 
@@ -168,15 +179,15 @@ export function AnubisAvatarGenerator() {
             });
         }, 200);
 
-        const result = await generateAvatar(originalImage, true);
+        const result = await generateCrown(selectedStyle);
         clearInterval(generationInterval);
         setProgress(100);
 
         if (result.error) {
             setError(result.error);
         } else if (result.imageUrl) {
-            setGeneratedImage(result.imageUrl);
-            // Handle generation limit tracking in a separate effect
+            setCrownImage(result.imageUrl);
+            // Handle generation limit tracking
             if (typeof window !== 'undefined') {
                 try {
                     const storedCount = localStorage.getItem(STORAGE_KEY);
@@ -197,24 +208,78 @@ export function AnubisAvatarGenerator() {
         setIsLoading(false);
     };
 
-    const handleDownload = () => {
-        if (!generatedImage) return;
-        const link = document.createElement("a");
-        link.href = generatedImage;
-        const randomNumber = Math.floor(Math.random() * 10000);
-        link.download = `$ANOS_${randomNumber}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    const handleDownload = async () => {
+        if (!originalImage || !crownImage || !finalImageContainerRef.current) return;
+    
+        const canvas = document.createElement('canvas');
+        const originalImg = new window.Image();
+        originalImg.src = originalImage;
+    
+        originalImg.onload = () => {
+            const crownImg = new window.Image();
+            crownImg.src = crownImage;
+    
+            crownImg.onload = () => {
+                const container = finalImageContainerRef.current!;
+                const containerRect = container.getBoundingClientRect();
+
+                // Set canvas to the size of the original image
+                canvas.width = originalImg.naturalWidth;
+                canvas.height = originalImg.naturalHeight;
+
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+
+                // Draw the original image
+                ctx.drawImage(originalImg, 0, 0);
+
+                // Calculate scale factors
+                const scaleX = originalImg.naturalWidth / containerRect.width;
+                const scaleY = originalImg.naturalHeight / containerRect.height;
+                
+                // Calculate crown dimensions and position on the canvas
+                const crownWidthOnCanvas = (containerRect.width / 2) * scaleX;
+                const crownHeightOnCanvas = crownWidthOnCanvas; // Maintain aspect ratio
+                const crownXOnCanvas = (containerRect.width / 4 + crownPosition.x) * scaleX;
+                const crownYOnCanvas = (containerRect.height / 4 + crownPosition.y) * scaleY;
+                
+                // Draw the crown image
+                ctx.drawImage(crownImg, crownXOnCanvas, crownYOnCanvas, crownWidthOnCanvas, crownHeightOnCanvas);
+
+                // Draw watermark
+                const watermark = new window.Image();
+                watermark.src = '/logo.png';
+                watermark.onload = () => {
+                  const watermarkSize = canvas.width * 0.15;
+                  const margin = canvas.width * 0.04;
+                  ctx.globalAlpha = 0.5;
+                  ctx.drawImage(watermark, canvas.width - watermarkSize - margin, canvas.height - watermarkSize - margin, watermarkSize, watermarkSize);
+                  ctx.globalAlpha = 1.0;
+
+                  // Trigger download
+                  const finalImage = canvas.toDataURL('image/png');
+                  setGeneratedImage(finalImage); // So user sees the final merged image
+                  const link = document.createElement("a");
+                  link.href = finalImage;
+                  const randomNumber = Math.floor(Math.random() * 10000);
+                  link.download = `$ANOS_${randomNumber}.png`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }
+            };
+        };
     };
 
     const handleReset = () => {
         setOriginalImage(null);
+        setCrownImage(null);
         setGeneratedImage(null);
         setIsLoading(false);
         setError(null);
         setProgress(0);
         setGenerationStarted(false);
+        setCrownPosition({ x: 0, y: 0 });
          // Don't reset the generation limit error
         if (generationLimitReached) {
             setError(`You have reached your generation limit of ${GENERATION_LIMIT} images. Please contact support for an upgrade.`);
@@ -269,6 +334,7 @@ export function AnubisAvatarGenerator() {
                         <h2 className="text-2xl font-bold text-center font-headline">Original</h2>
                         <Card className="w-full aspect-square relative overflow-hidden bg-card/50">
                             <Image
+                                ref={originalImageRef}
                                 src={originalImage}
                                 alt="Original user photo"
                                 fill
@@ -278,30 +344,35 @@ export function AnubisAvatarGenerator() {
                     </div>
                     <div className="flex flex-col items-center gap-2">
                          <h2 className="text-2xl font-bold text-center font-headline">Generated</h2>
-                         <Card className="w-full aspect-square relative overflow-hidden bg-card/50">
+                         <Card ref={finalImageContainerRef} className="w-full aspect-square relative overflow-hidden bg-card/50">
                              {isLoading && (
-                                 <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-4 text-white z-10">
+                                 <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-4 text-white z-20">
                                      <Loader2 className="w-12 h-12 animate-spin text-primary" />
                                      <p className="font-bold text-lg">Generating...</p>
                                      <Progress value={progress} className="w-3/4" />
                                  </div>
                              )}
-                             {generatedImage ? (
-                                 <>
-                                     <Image
-                                         src={generatedImage}
-                                         alt="Generated Anubis Avatar"
-                                         fill
-                                         className="object-cover"
-                                     />
-                                     <Image
-                                        src="/logo.png"
-                                        alt="Watermark"
-                                        width={64}
-                                        height={64}
-                                        className="absolute bottom-4 right-4 opacity-50 pointer-events-none"
-                                     />
-                                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-4/5">
+                            
+                            {originalImage && <Image src={originalImage} alt="User photo background" fill className="object-cover"/>}
+
+                             {crownImage ? (
+                                <>
+                                    <Draggable
+                                      bounds="parent"
+                                      position={crownPosition}
+                                      onStop={(e, data) => setCrownPosition({ x: data.x, y: data.y })}
+                                    >
+                                        <div className="w-1/2 h-1/2 absolute top-1/4 left-1/4 cursor-move z-10">
+                                            <Image
+                                                src={crownImage}
+                                                alt="Generated Crown"
+                                                fill
+                                                className="object-contain pointer-events-none"
+                                            />
+                                        </div>
+                                    </Draggable>
+
+                                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-4/5 z-20">
                                          <Button onClick={handleDownload} size="lg" className="w-full">
                                              <Download className="mr-2 h-5 w-5" />
                                              Download (PNG)
@@ -309,16 +380,18 @@ export function AnubisAvatarGenerator() {
                                      </div>
                                  </>
                              ) : (
-                                 generationStarted && !isLoading ? (
-                                     <div className="w-full h-full bg-secondary flex items-center justify-center p-4">
-                                         <p className="text-muted-foreground text-center">AI stylization is temporarily disabled. Your original image is shown.</p>
-                                     </div>
-                                 ) :  !generationStarted && (
-                                     <div className="w-full h-full bg-secondary flex items-center justify-center">
-                                         <Image src="/helmet.png" alt="Headdress placeholder" width={256} height={256} className="opacity-10"/>
-                                     </div>
-                                 )
+                                generationStarted && !isLoading ? (
+                                    <div className="w-full h-full bg-secondary flex items-center justify-center p-4">
+                                        <p className="text-muted-foreground text-center">Generation failed. Please try again.</p>
+                                    </div>
+                                ) : !generationStarted && (
+                                    <div className="w-full h-full bg-secondary flex items-center justify-center">
+                                        <Image src="/helmet.png" alt="Headdress placeholder" width={256} height={256} className="opacity-10"/>
+                                    </div>
+                                )
                              )}
+                            {generatedImage &&  <Image src={generatedImage} alt="Final generated image" fill className="object-cover z-30"/>}
+
                          </Card>
                      </div>
                 </div>
