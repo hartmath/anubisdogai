@@ -310,8 +310,8 @@ export function AnubisAvatarGenerator() {
                                  </>
                              ) : (
                                  generationStarted && !isLoading ? (
-                                     <div className="w-full h-full bg-secondary flex items-center justify-center">
-                                         <p className="text-muted-foreground p-4 text-center">AI stylization is temporarily disabled, but your image is ready.</p>
+                                     <div className="w-full h-full bg-secondary flex items-center justify-center p-4">
+                                         <p className="text-muted-foreground text-center">AI stylization is temporarily disabled. Your original image is shown.</p>
                                      </div>
                                  ) :  !generationStarted && (
                                      <div className="w-full h-full bg-secondary flex items-center justify-center">

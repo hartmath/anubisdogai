@@ -12,11 +12,13 @@ export async function generateAvatar(
   }
 
   try {
-    if (!shouldStylize) {
+    // AI stylization is temporarily disabled to prevent errors.
+    // The original image will be returned instead.
+    if (shouldStylize) {
         return { imageUrl: photoDataUri };
     }
     
-    const result = await aiStylizeAvatar({ photoDataUri, shouldStylize });
+    const result = await aiStylizeAvatar({ photoDataUri, shouldStylize: false });
 
     return { imageUrl: result.stylizedAvatarDataUri };
 
