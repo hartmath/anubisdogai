@@ -41,6 +41,7 @@ const aiGenerateCrownFlow = ai.defineFlow(
   async (input) => {
     
     const {media} = await ai.generate({
+      model: 'googleai/gemini-1.5-flash',
       prompt: `Task: Generate ONLY an image of an ancient Egyptian pharaoh's crown (a Nemes headdress).
       
       Instructions:
