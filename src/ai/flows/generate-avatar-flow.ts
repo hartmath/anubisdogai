@@ -42,14 +42,16 @@ const generateAvatarFlow = ai.defineFlow(
           media: { url: input.photoDataUri },
         },
         {
-          text: `You are an expert ancient Egyptian artist. Your task is to transform a user's photo by adding a photorealistic Anubis headdress in the style of helmet.png.
+          text: `You are an expert ancient Egyptian artist. Your task is to transform a user's photo by adding a photorealistic Egyptian headdress.
               
               Instructions:
               1. Analyze the input photo to identify the person's head, including its position, angle, and lighting.
-              2. Generate an ornate, black and gold Anubis-style headdress that perfectly fits the person's head. The style should be exactly like the provided helmet.png image.
-              3. The headdress should look realistic and seamlessly integrate with the photo's lighting and shadows.
-              4. Do NOT modify the person's face or the background. Only add the headdress.
-              5. Output only the final, modified image. Do not output text or any other content.`,
+              2. Generate a classic Egyptian pharaoh's headdress (a Nemes crown) that perfectly fits the person's head.
+              3. The headdress MUST have alternating blue and gold horizontal stripes.
+              4. The headdress MUST feature a cobra emblem (uraeus) in the center, positioned above the brow.
+              5. The headdress should look realistic and seamlessly integrate with the photo's lighting and shadows.
+              6. Do NOT modify the person's face or the background. Only add the headdress.
+              7. Output only the final, modified image. Do not output text or any other content.`,
         },
       ],
       config: {
