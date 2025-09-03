@@ -6,8 +6,9 @@ export async function generateAvatarAction(photoDataUri: string) {
     try {
         const result = await generateAvatar({ photoDataUri });
         return result;
-    } catch (error) {
+    } catch (error: any) {
         console.error("Avatar generation failed:", error);
-        throw new Error("Avatar generation failed. Please try again.");
+        // Re-throw the original error message to show the real problem on the client.
+        throw new Error(error.message || "An unknown error occurred during avatar generation.");
     }
 }
