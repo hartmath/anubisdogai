@@ -223,7 +223,7 @@ export function AnubisAvatarGenerator() {
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter text-primary font-headline">
                     Transform Your Profile Picture
                 </h1>
-                <p className="max-w-2xl mt-4 text-md sm:text-lg text-muted-foreground">
+                <p className="max-w-2xl mx-auto mt-4 text-md sm:text-lg text-muted-foreground">
                     Upload your photo, choose a style, and let our AI create a stunning
                     new avatar for you, inspired by ancient Egypt.
                 </p>
@@ -274,7 +274,7 @@ export function AnubisAvatarGenerator() {
                     <div className="flex flex-col items-center gap-2">
                          <h2 className="text-2xl font-bold text-center font-headline">Generated</h2>
                          <Card className="w-full aspect-square relative overflow-hidden bg-card/50">
-                             {generationStarted && (
+                             {isLoading && (
                                  <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-4 text-white z-10">
                                      <Loader2 className="w-12 h-12 animate-spin text-primary" />
                                      <p className="font-bold text-lg">Generating...</p>
