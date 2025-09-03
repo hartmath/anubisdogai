@@ -44,10 +44,10 @@ const aiStylizeAvatarFlow = ai.defineFlow(
     }
 
     const {media} = await ai.generate({
-      model: 'googleai/gemini-1.5-flash',
+      model: 'googleai/gemini-1.5-pro-preview',
       prompt: [
         {media: {url: input.photoDataUri}},
-        {text: 'Based on the provided image, place an ancient Egyptian pharaoh\'s crown on the person\'s head. The crown should be the iconic Nemes headdress, with alternating blue and gold stripes, like the one seen on Tutankhamun. The style should be a modern, digital art masterpiece. Ensure the original facial features are clearly visible. Output ONLY the new image and nothing else. Do not output any text or explanation.'},
+        {text: 'Based on the provided image, add an ancient Egyptian pharaoh\'s crown (Nemes headdress) to the person\'s head. The crown should have alternating blue and gold stripes, similar to Tutankhamun\'s. Render the final image in a modern, digital art style, ensuring the original facial features are preserved and clearly visible. Output ONLY the newly generated image.'},
       ],
       config: {
         responseModalities: ['IMAGE'],
