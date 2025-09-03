@@ -220,7 +220,7 @@ export function AnubisAvatarGenerator() {
                          ))}
                      </div>
  
-                     <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                     <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
                          <Button
                              onClick={handleGenerate}
                              size="lg"
