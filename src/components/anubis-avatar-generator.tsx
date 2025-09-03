@@ -92,17 +92,20 @@ export function AnubisAvatarGenerator() {
     const [remainingGenerations, setRemainingGenerations] = useState(GENERATION_LIMIT);
     const [generationLimitReached, setGenerationLimitReached] = useState(false);
     
+    // Check generation limit on mount
     useEffect(() => {
         try {
             const storedCount = localStorage.getItem(STORAGE_KEY);
             if (storedCount) {
                 const count = parseInt(storedCount, 10);
                 const remaining = GENERATION_LIMIT - count;
-                setRemainingGenerations(remaining);
+                setRemainingGenerations(remaining > 0 ? remaining : 0);
                 if (remaining <= 0) {
                     setGenerationLimitReached(true);
                     setError(`You have reached your generation limit of ${GENERATION_LIMIT} images. Please contact support for an upgrade.`);
                 }
+            } else {
+                setRemainingGenerations(GENERATION_LIMIT);
             }
         } catch (e) {
             console.error("Could not access local storage:", e);
@@ -170,17 +173,14 @@ export function AnubisAvatarGenerator() {
             setError(result.error);
         } else if (result.imageUrl) {
             setGeneratedImage(result.imageUrl);
-            // Handle generation limit tracking
+            // Handle generation limit tracking in a separate effect
             try {
                 const storedCount = localStorage.getItem(STORAGE_KEY);
-                let newCount = 1;
-                if (storedCount) {
-                    newCount = parseInt(storedCount, 10) + 1;
-                }
-                
+                const newCount = storedCount ? parseInt(storedCount, 10) + 1 : 1;
                 localStorage.setItem(STORAGE_KEY, newCount.toString());
+
                 const remaining = GENERATION_LIMIT - newCount;
-                setRemainingGenerations(remaining);
+                setRemainingGenerations(remaining > 0 ? remaining : 0);
                 if (remaining <= 0) {
                     setGenerationLimitReached(true);
                     setError(`You have reached your generation limit of ${GENERATION_LIMIT} images. Please contact support for an upgrade.`);
@@ -297,11 +297,11 @@ export function AnubisAvatarGenerator() {
                                      </div>
                                  </>
                              ) : (
-                                generationStarted && !isLoading && (
+                                 generationStarted && !isLoading ? (
                                      <div className="w-full h-full bg-secondary flex items-center justify-center">
                                          <Image src="/helmet.png" alt="Headdress placeholder" width={256} height={256} className="opacity-10"/>
                                      </div>
-                                 )
+                                 ) : null
                              )}
                          </Card>
                      </div>
