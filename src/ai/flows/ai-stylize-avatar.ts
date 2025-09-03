@@ -47,7 +47,7 @@ const aiStylizeAvatarFlow = ai.defineFlow(
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
       prompt: [
         {media: {url: input.photoDataUri}},
-        {text: 'Upon this face, a helmet you shall place; a crown of digital art, with gold and teal embraced. Let the original features brightly shine, a modern pharaoh, a portrait so divine.'},
+        {text: 'Upon this face, a sacred helm you\'ll place. With ancient grace and digital art, create a modern masterpiece, a work of heart. Let the features of the original brightly shine, a modern pharaoh, a portrait so divine.'},
       ],
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
