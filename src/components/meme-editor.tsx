@@ -39,8 +39,8 @@ const createMemeText = (text: string, top: number, canvasWidth: number) => {
 export function MemeEditor({ template, onBack }: MemeEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
-  const [topText, setTopText] = useState('Top Text');
-  const [bottomText, setBottomText] = useState('Bottom Text');
+  const [topText, setTopText] = useState('');
+  const [bottomText, setBottomText] = useState('');
   const [fontSize, setFontSize] = useState(40);
 
   useEffect(() => {
@@ -160,8 +160,8 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
   };
 
   const handleReset = () => {
-    setTopText('Top Text');
-    setBottomText('Bottom Text');
+    setTopText('');
+    setBottomText('');
     setFontSize(40);
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
@@ -172,11 +172,11 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
 
     if(objects.length > 0) {
         const top = objects[0] as fabric.Textbox;
-        top.set({ text: 'Top Text', top: 10, fontSize: 40 });
+        top.set({ text: '', top: 10, fontSize: 40 });
     }
     if(objects.length > 1) {
         const bottom = objects[1] as fabric.Textbox;
-        bottom.set({ text: 'Bottom Text', top: canvasHeight - 60, fontSize: 40 });
+        bottom.set({ text: '', top: canvasHeight - 60, fontSize: 40 });
     }
     canvas.renderAll();
   };
@@ -195,11 +195,11 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
             <CardContent className="space-y-6">
                 <div className="space-y-2">
                     <Label htmlFor="top-text">Top Text</Label>
-                    <Input id="top-text" value={topText} onChange={(e) => setTopText(e.target.value)} />
+                    <Input id="top-text" value={topText} onChange={(e) => setTopText(e.target.value)} placeholder="Add top text..."/>
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="bottom-text">Bottom Text</Label>
-                    <Input id="bottom-text" value={bottomText} onChange={(e) => setBottomText(e.target.value)} />
+                    <Input id="bottom-text" value={bottomText} onChange={(e) => setBottomText(e.target.value)} placeholder="Add bottom text..."/>
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="font-size">Font Size: {fontSize}px</Label>
