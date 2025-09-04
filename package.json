@@ -38,6 +38,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
+    "fabric": "^5.3.0",
     "firebase": "^11.9.1",
     "genkit": "^1.1.0",
     "lucide-react": "^0.475.0",
@@ -54,6 +55,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/fabric": "^5.3.7",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
