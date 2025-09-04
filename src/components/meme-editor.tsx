@@ -52,11 +52,14 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
     fabricCanvasRef.current = canvas;
 
     fabric.Image.fromURL(template.url, (img) => {
-      const canvasWidth = canvasRef.current?.parentElement?.clientWidth || 600;
+      const currentCanvas = fabricCanvasRef.current;
+      if (!currentCanvas || !canvasRef.current?.parentElement) return;
+
+      const canvasWidth = canvasRef.current.parentElement.clientWidth;
       const scale = canvasWidth / img.width!;
       const canvasHeight = img.height! * scale;
 
-      canvas.setDimensions({ width: canvasWidth, height: canvasHeight });
+      currentCanvas.setDimensions({ width: canvasWidth, height: canvasHeight });
       
       img.set({
         scaleX: scale,
@@ -65,14 +68,14 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
         evented: false,
       });
 
-      canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+      currentCanvas.setBackgroundImage(img, currentCanvas.renderAll.bind(currentCanvas));
       
       const topTextBox = createMemeText(topText, 10, canvasWidth);
       const bottomTextBox = createMemeText(bottomText, canvasHeight - 60, canvasWidth);
       
-      canvas.add(topTextBox);
-      canvas.add(bottomTextBox);
-      canvas.setActiveObject(topTextBox);
+      currentCanvas.add(topTextBox);
+      currentCanvas.add(bottomTextBox);
+      currentCanvas.setActiveObject(topTextBox);
 
     }, { crossOrigin: 'anonymous' });
 
@@ -107,8 +110,9 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
     
-    const top = canvas.getObjects('textbox')[0] as fabric.Textbox;
-    if (top) {
+    const objects = canvas.getObjects('textbox');
+    if (objects.length > 0) {
+      const top = objects[0] as fabric.Textbox;
       top.set('text', topText);
       canvas.renderAll();
     }
@@ -118,8 +122,9 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
 
-    const bottom = canvas.getObjects('textbox')[1] as fabric.Textbox;
-    if (bottom) {
+    const objects = canvas.getObjects('textbox');
+    if (objects.length > 1) {
+      const bottom = objects[1] as fabric.Textbox;
       bottom.set('text', bottomText);
       canvas.renderAll();
     }
@@ -161,15 +166,16 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
 
-    const top = canvas.getObjects('textbox')[0] as fabric.Textbox;
-    const bottom = canvas.getObjects('textbox')[1] as fabric.Textbox;
+    const objects = canvas.getObjects('textbox');
 
     const canvasHeight = canvas.getHeight();
 
-    if(top) {
+    if(objects.length > 0) {
+        const top = objects[0] as fabric.Textbox;
         top.set({ text: 'Top Text', top: 10, fontSize: 40 });
     }
-    if(bottom) {
+    if(objects.length > 1) {
+        const bottom = objects[1] as fabric.Textbox;
         bottom.set({ text: 'Bottom Text', top: canvasHeight - 60, fontSize: 40 });
     }
     canvas.renderAll();
