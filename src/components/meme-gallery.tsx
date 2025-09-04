@@ -18,12 +18,12 @@ export function MemeGallery({ templates, onSelectTemplate }: MemeGalleryProps) {
           className="cursor-pointer hover:border-primary transition-colors group"
           onClick={() => onSelectTemplate(template)}
         >
-          <CardContent className="p-0 aspect-w-1 aspect-h-1 relative">
+          <CardContent className="p-0 relative" style={{ paddingTop: '100%' }}>
             <Image
               src={template.url}
               alt={template.name}
               fill
-              className="object-cover rounded-lg"
+              className="object-contain rounded-lg"
               data-ai-hint={template.name.toLowerCase().split(' ').slice(0, 2).join(' ')}
               sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
             />
