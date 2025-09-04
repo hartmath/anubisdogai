@@ -15,6 +15,13 @@ interface MemeEditorProps {
   onBack: () => void;
 }
 
+// Set default fabric object properties for controls
+fabric.Object.prototype.transparentCorners = false;
+fabric.Object.prototype.cornerColor = 'white';
+fabric.Object.prototype.cornerStrokeColor = 'black';
+fabric.Object.prototype.borderColor = 'black';
+fabric.Object.prototype.cornerSize = 12;
+
 const createMemeText = (text: string, top: number, canvasWidth: number) => {
   return new fabric.Textbox(text, {
     fontFamily: 'Impact',
@@ -28,17 +35,15 @@ const createMemeText = (text: string, top: number, canvasWidth: number) => {
     top: top,
     originX: 'center',
     lineHeight: 1.1,
-    // Custom properties
-    cornerColor: 'white',
-    cornerStrokeColor: 'black',
-    transparentCorners: false,
-    cornerSize: 12,
   });
 };
 
 export function MemeEditor({ template, onBack }: MemeEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
+  const topTextInputRef = useRef<HTMLInputElement>(null);
+  const bottomTextInputRef = useRef<HTMLInputElement>(null);
+  
   const [topText, setTopText] = useState('');
   const [bottomText, setBottomText] = useState('');
   const [fontSize, setFontSize] = useState(40);
@@ -98,11 +103,37 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
             }
         }
     };
+
+    const handleObjectSelected = (e: fabric.IEvent) => {
+        if (!e.target) return;
+        const canvas = fabricCanvasRef.current;
+        if (!canvas) return;
+
+        const objects = canvas.getObjects('textbox');
+        if (e.target === objects[0]) {
+            topTextInputRef.current?.focus();
+        } else if (e.target === objects[1]) {
+            bottomTextInputRef.current?.focus();
+        }
+
+        canvas.bringToFront(e.target);
+        if (e.target instanceof fabric.Textbox) {
+            setFontSize(e.target.fontSize || 40);
+        }
+    };
+
+    canvas.on('selection:created', handleObjectSelected);
+    canvas.on('selection:updated', handleObjectSelected);
+    
     window.addEventListener('resize', handleResize);
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      fabricCanvasRef.current?.dispose();
+      if (fabricCanvasRef.current) {
+        fabricCanvasRef.current.off('selection:created', handleObjectSelected);
+        fabricCanvasRef.current.off('selection:updated', handleObjectSelected);
+        fabricCanvasRef.current.dispose();
+      }
     };
   }, [template.url]);
 
@@ -195,11 +226,11 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
             <CardContent className="space-y-6">
                 <div className="space-y-2">
                     <Label htmlFor="top-text">Top Text</Label>
-                    <Input id="top-text" value={topText} onChange={(e) => setTopText(e.target.value)} placeholder="Add top text..."/>
+                    <Input ref={topTextInputRef} id="top-text" value={topText} onChange={(e) => setTopText(e.target.value)} placeholder="Add top text..."/>
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="bottom-text">Bottom Text</Label>
-                    <Input id="bottom-text" value={bottomText} onChange={(e) => setBottomText(e.target.value)} placeholder="Add bottom text..."/>
+                    <Input ref={bottomTextInputRef} id="bottom-text" value={bottomText} onChange={(e) => setBottomText(e.target.value)} placeholder="Add bottom text..."/>
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="font-size">Font Size: {fontSize}px</Label>
