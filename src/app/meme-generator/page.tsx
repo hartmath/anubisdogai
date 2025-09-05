@@ -17,7 +17,20 @@ export default function MemeGeneratorPage() {
     async function fetchMemes() {
       try {
         const memes = await getMemesAction();
-        setTemplates(memes);
+        
+        // Create a custom meme template for the logo
+        const logoMeme: MemeTemplate = {
+          id: 'anubis-logo',
+          name: 'Anubis Dog AI Logo',
+          url: '/logo.png',
+          width: 512,
+          height: 512,
+          box_count: 2,
+        };
+
+        // Add the logo meme to the beginning of the list
+        setTemplates([logoMeme, ...memes]);
+
       } catch (error) {
         console.error("Failed to load memes:", error);
         // Handle error, maybe show a toast
