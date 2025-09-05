@@ -30,7 +30,7 @@ export default function MemeGeneratorPage() {
                   Meme Generator
                 </h1>
                 <p className="max-w-2xl mx-auto mt-4 text-md sm:text-lg text-muted-foreground">
-                  Select a template to get started.
+                  Choose your favourite meme
                 </p>
               </div>
               <MemeGallery templates={templates} onSelectTemplate={handleSelectTemplate} />
