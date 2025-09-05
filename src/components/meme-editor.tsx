@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -22,7 +23,8 @@ fabric.Object.prototype.cornerStrokeColor = 'black';
 fabric.Object.prototype.borderColor = 'black';
 fabric.Object.prototype.cornerSize = 12;
 
-const createMemeText = (text: string, top: number, canvasWidth: number) => {
+const createMemeText = (text: string, top: number, canvasWidth: number, customOptions = {}) => {
+  const isFourPanel = customOptions.isFourPanel;
   return new fabric.Textbox(text, {
     fontFamily: 'Impact',
     fontSize: 40,
@@ -30,23 +32,24 @@ const createMemeText = (text: string, top: number, canvasWidth: number) => {
     stroke: '#000',
     strokeWidth: 2,
     textAlign: 'center',
-    width: canvasWidth * 0.9,
-    left: canvasWidth / 2,
+    width: isFourPanel ? canvasWidth * 0.45 : canvasWidth * 0.9,
+    left: isFourPanel ? canvasWidth * 0.25 : canvasWidth / 2,
     top: top,
     originX: 'center',
     lineHeight: 1.1,
+    ...customOptions
   });
 };
 
 export function MemeEditor({ template, onBack }: MemeEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
-  const topTextInputRef = useRef<HTMLInputElement>(null);
-  const bottomTextInputRef = useRef<HTMLInputElement>(null);
   
-  const [topText, setTopText] = useState('');
-  const [bottomText, setBottomText] = useState('');
+  const isFourPanelMeme = template.id === 'expanding-brain';
+
+  const [textInputs, setTextInputs] = useState<string[]>(Array(isFourPanelMeme ? 4 : 2).fill(''));
   const [fontSize, setFontSize] = useState(40);
+  const [activeInput, setActiveInput] = useState(0);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -75,12 +78,23 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
 
       currentCanvas.setBackgroundImage(img, currentCanvas.renderAll.bind(currentCanvas));
       
-      const topTextBox = createMemeText(topText, 10, canvasWidth);
-      const bottomTextBox = createMemeText(bottomText, canvasHeight - 60, canvasWidth);
+      if (isFourPanelMeme) {
+          const panelHeight = canvasHeight / 4;
+          for (let i = 0; i < 4; i++) {
+              const textBox = createMemeText('', panelHeight * i + (panelHeight/2) - 20, canvasWidth, { isFourPanel: true });
+              currentCanvas.add(textBox);
+          }
+      } else {
+          const topTextBox = createMemeText('', 10, canvasWidth);
+          const bottomTextBox = createMemeText('', canvasHeight - 60, canvasWidth);
+          currentCanvas.add(topTextBox);
+          currentCanvas.add(bottomTextBox);
+      }
       
-      currentCanvas.add(topTextBox);
-      currentCanvas.add(bottomTextBox);
-      currentCanvas.setActiveObject(topTextBox);
+      if (currentCanvas.getObjects().length > 0) {
+        currentCanvas.setActiveObject(currentCanvas.getObjects()[0]);
+      }
+
 
     }, { crossOrigin: 'anonymous' });
 
@@ -95,7 +109,9 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
                 currentBg.set({ scaleX: scale, scaleY: scale });
                 fabricCanvasRef.current.forEachObject(obj => {
                   if (obj instanceof fabric.Textbox) {
-                    obj.set({ width: parentWidth * 0.9, left: parentWidth / 2 });
+                    const widthMultiplier = isFourPanelMeme ? 0.45 : 0.9;
+                    const leftPosition = isFourPanelMeme ? parentWidth * 0.25 : parentWidth / 2;
+                    obj.set({ width: parentWidth * widthMultiplier, left: leftPosition });
                     obj.setCoords();
                   }
                 });
@@ -110,10 +126,9 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
         if (!canvas) return;
 
         const objects = canvas.getObjects('textbox');
-        if (e.target === objects[0]) {
-            topTextInputRef.current?.focus();
-        } else if (e.target === objects[1]) {
-            bottomTextInputRef.current?.focus();
+        const selectedIndex = objects.indexOf(e.target as fabric.Textbox);
+        if (selectedIndex !== -1) {
+            setActiveInput(selectedIndex);
         }
 
         canvas.bringToFront(e.target);
@@ -135,31 +150,25 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
         fabricCanvasRef.current.dispose();
       }
     };
-  }, [template.url]);
+  }, [template.url, isFourPanelMeme]);
+
 
   useEffect(() => {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
     
     const objects = canvas.getObjects('textbox');
-    if (objects.length > 0) {
-      const top = objects[0] as fabric.Textbox;
-      top.set('text', topText);
-      canvas.renderAll();
-    }
-  }, [topText]);
+    textInputs.forEach((text, index) => {
+        if(objects[index]) {
+            const textbox = objects[index] as fabric.Textbox;
+            if (textbox.text !== text) {
+                textbox.set('text', text);
+            }
+        }
+    });
+    canvas.renderAll();
+  }, [textInputs]);
 
-  useEffect(() => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) return;
-
-    const objects = canvas.getObjects('textbox');
-    if (objects.length > 1) {
-      const bottom = objects[1] as fabric.Textbox;
-      bottom.set('text', bottomText);
-      canvas.renderAll();
-    }
-  }, [bottomText]);
 
   useEffect(() => {
     const canvas = fabricCanvasRef.current;
@@ -169,6 +178,12 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
         canvas?.renderAll();
     }
   }, [fontSize]);
+
+  const handleTextChange = (index: number, value: string) => {
+    const newTextInputs = [...textInputs];
+    newTextInputs[index] = value;
+    setTextInputs(newTextInputs);
+  };
 
   const handleDownload = () => {
     const canvas = fabricCanvasRef.current;
@@ -191,24 +206,28 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
   };
 
   const handleReset = () => {
-    setTopText('');
-    setBottomText('');
+    setTextInputs(Array(isFourPanelMeme ? 4 : 2).fill(''));
     setFontSize(40);
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
 
     const objects = canvas.getObjects('textbox');
+    objects.forEach(obj => {
+        (obj as fabric.Textbox).set({ text: '', fontSize: 40 });
+    });
 
-    const canvasHeight = canvas.getHeight();
+    if (isFourPanelMeme) {
+        const canvasHeight = canvas.getHeight();
+        const panelHeight = canvasHeight / 4;
+        objects.forEach((obj, i) => {
+            (obj as fabric.Textbox).set({ top: panelHeight * i + (panelHeight/2) - 20 });
+        });
+    } else if (objects.length > 1) {
+        const canvasHeight = canvas.getHeight();
+        (objects[0] as fabric.Textbox).set({ top: 10 });
+        (objects[1] as fabric.Textbox).set({ top: canvasHeight - 60 });
+    }
 
-    if(objects.length > 0) {
-        const top = objects[0] as fabric.Textbox;
-        top.set({ text: '', top: 10, fontSize: 40 });
-    }
-    if(objects.length > 1) {
-        const bottom = objects[1] as fabric.Textbox;
-        bottom.set({ text: '', top: canvasHeight - 60, fontSize: 40 });
-    }
     canvas.renderAll();
   };
 
@@ -224,14 +243,30 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
                 <CardTitle>Meme Editor</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div className="space-y-2">
-                    <Label htmlFor="top-text">Top Text</Label>
-                    <Input ref={topTextInputRef} id="top-text" value={topText} onChange={(e) => setTopText(e.target.value)} placeholder="Add top text..."/>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="bottom-text">Bottom Text</Label>
-                    <Input ref={bottomTextInputRef} id="bottom-text" value={bottomText} onChange={(e) => setBottomText(e.target.value)} placeholder="Add bottom text..."/>
-                </div>
+                {textInputs.map((text, index) => (
+                    <div className="space-y-2" key={index}>
+                        <Label htmlFor={`text-input-${index}`}>
+                            {isFourPanelMeme ? `Panel ${index + 1} Text` : (index === 0 ? 'Top Text' : 'Bottom Text')}
+                        </Label>
+                        <Input 
+                            id={`text-input-${index}`} 
+                            value={text} 
+                            onChange={(e) => handleTextChange(index, e.target.value)} 
+                            onFocus={() => {
+                                const canvas = fabricCanvasRef.current;
+                                if(canvas) {
+                                    const objects = canvas.getObjects('textbox');
+                                    if(objects[index]) {
+                                        canvas.setActiveObject(objects[index]);
+                                        canvas.renderAll();
+                                    }
+                                }
+                            }}
+                            placeholder={`Add text for ${isFourPanelMeme ? `panel ${index + 1}` : (index === 0 ? 'top' : 'bottom')}...`}
+                        />
+                    </div>
+                ))}
+
                  <div className="space-y-2">
                     <Label htmlFor="font-size">Font Size: {fontSize}px</Label>
                     <Slider
