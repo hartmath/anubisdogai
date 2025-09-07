@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Navigation } from "./navigation";
 
 export function Header() {
     return (
@@ -11,7 +10,6 @@ export function Header() {
                     Anubis Dog AI
                 </h2>
             </Link>
-            <Navigation />
         </header>
     );
 }
