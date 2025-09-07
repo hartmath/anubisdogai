@@ -11,14 +11,6 @@ export default function Home() {
             <main className="flex-grow flex flex-col items-center justify-center p-4 sm:p-8">
                 <div className="flex flex-col items-center gap-8">
                      <AnubisAvatarGenerator />
-                     <div className="w-full max-w-xl text-center">
-                        <Link href="/meme-generator">
-                            <Button size="lg" className="w-full sm:w-auto px-10 py-6 text-lg">
-                                <MessageSquareQuote className="mr-2" />
-                                Create a Meme
-                            </Button>
-                        </Link>
-                     </div>
                 </div>
             </main>
             <footer className="text-center p-6 text-sm text-muted-foreground">
