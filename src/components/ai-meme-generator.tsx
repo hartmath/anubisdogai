@@ -35,6 +35,7 @@ const createMemeText = (
   canvasWidth: number,
   customOptions = {}
 ) => {
+  if (!text) return null;
   return new fabric.Textbox(text, {
     fontFamily: 'Impact',
     fontSize: 40,
@@ -63,18 +64,14 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
   const [finalMemeUrl, setFinalMemeUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Ref for the canvas element
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  // Ref for the fabric instance
   const fabricCanvasRef = useRef<fabric.StaticCanvas | null>(null);
 
   useEffect(() => {
-    // Initialize fabric canvas
     if (canvasRef.current && !fabricCanvasRef.current) {
         fabricCanvasRef.current = new fabric.StaticCanvas(canvasRef.current);
     }
 
-    // Cleanup on unmount
     return () => {
         fabricCanvasRef.current?.dispose();
         fabricCanvasRef.current = null;
@@ -100,6 +97,9 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
         toast({ variant: 'destructive', title: 'Error', description: 'Canvas not initialized.' });
         return;
     }
+    
+    // Clear the canvas completely before generating a new meme
+    canvas.clear();
 
     try {
       const result = await generateMemeImageAction(topText, bottomText, style, subject);
@@ -108,9 +108,6 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
         result.imageUrl,
         (img) => {
           if (!img.width || !img.height) return;
-
-          // Clear canvas before adding new elements
-          canvas.clear();
           
           canvas.setDimensions({ width: img.width, height: img.height });
           img.set({
@@ -126,8 +123,8 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
             img.width
           );
 
-          if (topText) canvas.add(topTextBox);
-          if (bottomText) canvas.add(bottomTextBox);
+          if (topTextBox) canvas.add(topTextBox);
+          if (bottomTextBox) canvas.add(bottomTextBox);
 
           canvas.renderAll();
 
@@ -288,7 +285,6 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
       )}
 
       <div className="text-center">
-        {/* We add a hidden canvas to the DOM. Fabric.js will use this. */}
         <canvas ref={canvasRef} className="hidden"></canvas>
         <Button onClick={onBack} variant="outline">
           <ArrowLeft className="mr-2" />
