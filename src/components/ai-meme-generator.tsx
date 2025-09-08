@@ -32,10 +32,9 @@ interface AiMemeGeneratorProps {
 const createMemeText = (
   text: string,
   top: number,
-  canvasWidth: number,
-  customOptions = {}
+  canvasWidth: number
 ) => {
-  if (!text) return null;
+  if (!text.trim()) return null; // Return null if text is empty
   return new fabric.Textbox(text, {
     fontFamily: 'Impact',
     fontSize: 40,
@@ -48,9 +47,9 @@ const createMemeText = (
     top: top,
     originX: 'center',
     lineHeight: 1.1,
-    ...customOptions,
   });
 };
+
 
 const styles = ['Photorealistic', 'Cartoon', 'Watercolor', 'Pixel Art', 'Anime'];
 const subjects = ['Person', 'Man', 'Woman', 'Animal', 'Thing'];
@@ -100,6 +99,9 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
     
     // Clear the canvas completely before generating a new meme
     canvas.clear();
+    // It's important to also reset the background image
+    canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
+
 
     try {
       const result = await generateMemeImageAction(topText, bottomText, style, subject);
@@ -117,14 +119,14 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
           canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
 
           const topTextBox = createMemeText(topText, 10, img.width);
-          const bottomTextBox = createMemeText(
-            bottomText,
-            img.height - 60,
-            img.width
-          );
+          if (topTextBox) {
+            canvas.add(topTextBox);
+          }
 
-          if (topTextBox) canvas.add(topTextBox);
-          if (bottomTextBox) canvas.add(bottomTextBox);
+          const bottomTextBox = createMemeText(bottomText, img.height - 60, img.width);
+          if (bottomTextBox) {
+              canvas.add(bottomTextBox);
+          }
 
           canvas.renderAll();
 
