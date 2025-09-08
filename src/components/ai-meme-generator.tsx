@@ -34,7 +34,6 @@ const createMemeText = (
   top: number,
   canvasWidth: number
 ) => {
-  if (!text.trim()) return null; // Return null if text is empty
   return new fabric.Textbox(text, {
     fontFamily: 'Impact',
     fontSize: 40,
@@ -118,14 +117,18 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
           });
           canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
 
-          const topTextBox = createMemeText(topText, 10, img.width);
-          if (topTextBox) {
+          if (topText) {
+            const topTextBox = createMemeText(topText, 10, img.width);
             canvas.add(topTextBox);
           }
 
-          const bottomTextBox = createMemeText(bottomText, img.height - 60, img.width);
-          if (bottomTextBox) {
-              canvas.add(bottomTextBox);
+          if (bottomText) {
+            // Estimate text box height for better positioning
+            const tempBox = new fabric.Textbox(bottomText, { fontSize: 40, width: img.width * 0.9 });
+            const boxHeight = tempBox.height || 60;
+            const bottomPosition = img.height - boxHeight - 10;
+            const bottomTextBox = createMemeText(bottomText, bottomPosition, img.width);
+            canvas.add(bottomTextBox);
           }
 
           canvas.renderAll();
