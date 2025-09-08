@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { MemeGallery } from '@/components/meme-gallery';
 import { MemeEditor } from '@/components/meme-editor';
 import { Header } from '@/components/header';
 import { getMemesAction } from '@/app/actions';
 import type { MemeTemplate } from '@/lib/types';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, WandSparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function MemeGeneratorPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<MemeTemplate | null>(null);
@@ -60,6 +62,12 @@ export default function MemeGeneratorPage() {
                 <p className="max-w-2xl mx-auto mt-4 text-md sm:text-lg text-muted-foreground">
                   Choose your favourite meme
                 </p>
+                <Button asChild variant="outline" className="mt-4">
+                  <Link href="/">
+                    <WandSparkles className="mr-2" />
+                    Back to Avatar Generator
+                  </Link>
+                </Button>
               </div>
               {loading ? (
                 <div className="flex justify-center items-center py-20">
