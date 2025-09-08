@@ -70,15 +70,16 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
       const result = await generateMemeImageAction(topText, bottomText);
 
       // Create final meme on a canvas
-      const canvas = new fabric.StaticCanvas(null, {
-        width: 1024,
-        height: 1024,
-      });
+      const canvas = new fabric.StaticCanvas(null);
 
       fabric.Image.fromURL(
         result.imageUrl,
         (img) => {
           if (!img.width || !img.height) return;
+
+          // Clear canvas before adding new elements
+          canvas.clear();
+
           canvas.setDimensions({ width: img.width, height: img.height });
           img.set({
             selectable: false,
