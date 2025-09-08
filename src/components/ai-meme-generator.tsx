@@ -29,6 +29,7 @@ const createMemeText = (
   canvasWidth: number,
   customOptions = {}
 ) => {
+  if (!text) return null;
   return new fabric.Textbox(text, {
     fontFamily: 'Impact',
     fontSize: 40,
@@ -92,7 +93,9 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
             img.width
           );
 
-          canvas.add(topTextBox, bottomTextBox);
+          if (topTextBox) canvas.add(topTextBox);
+          if (bottomTextBox) canvas.add(bottomTextBox);
+
           canvas.renderAll();
 
           const dataURL = canvas.toDataURL({ format: 'png', quality: 1.0 });
