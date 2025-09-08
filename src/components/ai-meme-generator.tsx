@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { fabric } from 'fabric';
-import { MemeTemplate } from '@/lib/types';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -15,6 +14,13 @@ import {
   Download,
   RefreshCw,
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { generateMemeImageAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from './ui/label';
@@ -29,7 +35,6 @@ const createMemeText = (
   canvasWidth: number,
   customOptions = {}
 ) => {
-  if (!text) return null;
   return new fabric.Textbox(text, {
     fontFamily: 'Impact',
     fontSize: 40,
@@ -46,12 +51,35 @@ const createMemeText = (
   });
 };
 
+const styles = ['Photorealistic', 'Cartoon', 'Watercolor', 'Pixel Art', 'Anime'];
+const subjects = ['Person', 'Man', 'Woman', 'Animal', 'Thing'];
+
 export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
   const [topText, setTopText] = useState('');
   const [bottomText, setBottomText] = useState('');
+  const [style, setStyle] = useState('Photorealistic');
+  const [subject, setSubject] = useState('Person');
   const [isGenerating, setIsGenerating] = useState(false);
   const [finalMemeUrl, setFinalMemeUrl] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Ref for the canvas element
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // Ref for the fabric instance
+  const fabricCanvasRef = useRef<fabric.StaticCanvas | null>(null);
+
+  useEffect(() => {
+    // Initialize fabric canvas
+    if (canvasRef.current && !fabricCanvasRef.current) {
+        fabricCanvasRef.current = new fabric.StaticCanvas(canvasRef.current);
+    }
+
+    // Cleanup on unmount
+    return () => {
+        fabricCanvasRef.current?.dispose();
+        fabricCanvasRef.current = null;
+    };
+  }, []);
 
   const handleGenerate = async () => {
     if (!topText && !bottomText) {
@@ -66,11 +94,15 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
     setIsGenerating(true);
     setFinalMemeUrl(null);
 
-    try {
-      const result = await generateMemeImageAction(topText, bottomText);
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) {
+        setIsGenerating(false);
+        toast({ variant: 'destructive', title: 'Error', description: 'Canvas not initialized.' });
+        return;
+    }
 
-      // Create final meme on a canvas
-      const canvas = new fabric.StaticCanvas(null);
+    try {
+      const result = await generateMemeImageAction(topText, bottomText, style, subject);
 
       fabric.Image.fromURL(
         result.imageUrl,
@@ -79,7 +111,7 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
 
           // Clear canvas before adding new elements
           canvas.clear();
-
+          
           canvas.setDimensions({ width: img.width, height: img.height });
           img.set({
             selectable: false,
@@ -94,8 +126,8 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
             img.width
           );
 
-          if (topTextBox) canvas.add(topTextBox);
-          if (bottomTextBox) canvas.add(bottomTextBox);
+          if (topText) canvas.add(topTextBox);
+          if (bottomText) canvas.add(bottomTextBox);
 
           canvas.renderAll();
 
@@ -135,6 +167,7 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
     setBottomText('');
     setFinalMemeUrl(null);
     setIsGenerating(false);
+    fabricCanvasRef.current?.clear();
   };
 
   return (
@@ -148,7 +181,7 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
         </p>
       </div>
 
-      {!finalMemeUrl && (
+      {!finalMemeUrl && !isGenerating && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -156,6 +189,31 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="space-y-2">
+                 <Label htmlFor="style">Style</Label>
+                 <Select value={style} onValueChange={setStyle} disabled={isGenerating}>
+                   <SelectTrigger id="style">
+                     <SelectValue placeholder="Select a style" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {styles.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                   </SelectContent>
+                 </Select>
+               </div>
+               <div className="space-y-2">
+                 <Label htmlFor="subject">Subject</Label>
+                 <Select value={subject} onValueChange={setSubject} disabled={isGenerating}>
+                   <SelectTrigger id="subject">
+                     <SelectValue placeholder="Select a subject" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {subjects.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                   </SelectContent>
+                 </Select>
+               </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="top-text" className="text-lg">
                 Top Text
@@ -188,23 +246,14 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
               size="lg"
               className="w-full"
             >
-              {isGenerating ? (
-                <>
-                  <LoaderCircle className="mr-2 animate-spin" />
-                  Generating Image...
-                </>
-              ) : (
-                <>
-                  <WandSparkles className="mr-2" />
-                  Generate Meme
-                </>
-              )}
+              <WandSparkles className="mr-2" />
+              Generate Meme
             </Button>
           </CardContent>
         </Card>
       )}
 
-      {isGenerating && !finalMemeUrl && (
+      {isGenerating && (
          <div className="flex flex-col items-center gap-4 text-center">
             <LoaderCircle className="w-12 h-12 animate-spin text-primary" />
             <p className="text-lg font-semibold">Generating your meme...</p>
@@ -239,6 +288,8 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
       )}
 
       <div className="text-center">
+        {/* We add a hidden canvas to the DOM. Fabric.js will use this. */}
+        <canvas ref={canvasRef} className="hidden"></canvas>
         <Button onClick={onBack} variant="outline">
           <ArrowLeft className="mr-2" />
           Back to Gallery

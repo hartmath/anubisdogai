@@ -13,6 +13,8 @@ import { z } from 'zod';
 const GenerateMemeImageInputSchema = z.object({
   topText: z.string().describe('The text for the top of the meme.'),
   bottomText: z.string().describe('The text for the bottom of the meme.'),
+  style: z.string().describe('The artistic style of the image.'),
+  subject: z.string().describe('The main subject of the image.'),
 });
 export type GenerateMemeImageInput = z.infer<
   typeof GenerateMemeImageInputSchema
@@ -38,7 +40,7 @@ const generateMemeImageFlow = ai.defineFlow(
   async (input) => {
     const { media } = await ai.generate({
       model: 'googleai/imagen-4.0-fast-generate-001',
-      prompt: `Generate a funny, high-quality, photorealistic image that would work well for a meme with the following text. Do not include any text in the image itself.
+      prompt: `Generate a funny, high-quality, ${input.style} image that would work well for a meme featuring a ${input.subject}. Do not include any text in the image itself.
 
 Meme context:
 - Top Text: "${input.topText}"
