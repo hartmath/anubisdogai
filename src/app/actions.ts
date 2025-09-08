@@ -4,6 +4,10 @@ import {
   generateAvatar,
   type GenerateAvatarInput,
 } from '@/ai/flows/generate-avatar-flow';
+import {
+  generateMemeText,
+  type GenerateMemeTextInput,
+} from '@/ai/flows/generate-meme-text-flow';
 import type { MemeTemplate } from '@/lib/types';
 
 export async function generateAvatarAction(
@@ -39,5 +43,19 @@ export async function getMemesAction(): Promise<MemeTemplate[]> {
     console.error('getMemesAction failed:', error);
     // In case of an error, we return an empty array to prevent the page from crashing.
     return [];
+  }
+}
+
+export async function generateMemeTextAction(memeName: string, topic: string) {
+  try {
+    const input: GenerateMemeTextInput = { memeName, topic };
+    const result = await generateMemeText(input);
+    return result;
+  } catch (error: any) {
+    console.error('Meme text generation failed:', error);
+    throw new Error(
+      error.message ||
+        'An unknown error occurred during meme text generation.'
+    );
   }
 }

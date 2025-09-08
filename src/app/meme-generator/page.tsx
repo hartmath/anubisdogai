@@ -7,30 +7,30 @@ import { MemeEditor } from '@/components/meme-editor';
 import { Header } from '@/components/header';
 import { getMemesAction } from '@/app/actions';
 import type { MemeTemplate } from '@/lib/types';
-import { LoaderCircle, WandSparkles } from 'lucide-react';
+import { LoaderCircle, WandSparkles, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AiMemeGenerator } from '@/components/ai-meme-generator';
 
 export default function MemeGeneratorPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<MemeTemplate | null>(null);
   const [templates, setTemplates] = useState<MemeTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAiGenerator, setShowAiGenerator] = useState(false);
+
+  const logoMeme: MemeTemplate = {
+      id: 'anubis-logo',
+      name: 'Anubis Dog AI Logo',
+      url: '/logo.png',
+      width: 512,
+      height: 512,
+      box_count: 2,
+    };
 
   useEffect(() => {
     async function fetchMemes() {
       try {
         const memes = await getMemesAction();
-        
-        const logoMeme: MemeTemplate = {
-          id: 'anubis-logo',
-          name: 'Anubis Dog AI Logo',
-          url: '/logo.png',
-          width: 512,
-          height: 512,
-          box_count: 2,
-        };
-
         setTemplates([logoMeme, ...memes]);
-
       } catch (error) {
         console.error("Failed to load memes:", error);
       } finally {
@@ -42,9 +42,16 @@ export default function MemeGeneratorPage() {
 
   const handleSelectTemplate = (template: MemeTemplate) => {
     setSelectedTemplate(template);
+    setShowAiGenerator(false);
   };
 
   const handleBackToGallery = () => {
+    setSelectedTemplate(null);
+    setShowAiGenerator(false);
+  };
+
+  const handleAiGenerateClick = () => {
+    setShowAiGenerator(true);
     setSelectedTemplate(null);
   };
 
@@ -53,21 +60,27 @@ export default function MemeGeneratorPage() {
       <Header />
       <main className="flex-grow flex flex-col items-center p-4 sm:p-8">
         <div className="w-full max-w-7xl mx-auto">
-          {!selectedTemplate ? (
+          {!selectedTemplate && !showAiGenerator ? (
             <>
               <div className="text-center mb-8">
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter text-primary font-headline">
                   Meme Generator
                 </h1>
                 <p className="max-w-2xl mx-auto mt-4 text-md sm:text-lg text-muted-foreground">
-                  Choose your favourite meme
+                  Choose your favourite meme or let AI create one for you.
                 </p>
-                <Button asChild variant="outline" className="mt-4">
-                  <Link href="/">
-                    <WandSparkles className="mr-2" />
-                    Back to Avatar Generator
-                  </Link>
-                </Button>
+                <div className="flex flex-wrap justify-center gap-4 mt-6">
+                  <Button onClick={handleAiGenerateClick}>
+                    <Bot className="mr-2" />
+                    Create a Meme with AI
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link href="/">
+                      <WandSparkles className="mr-2" />
+                      Back to Avatar Generator
+                    </Link>
+                  </Button>
+                </div>
               </div>
               {loading ? (
                 <div className="flex justify-center items-center py-20">
@@ -77,8 +90,14 @@ export default function MemeGeneratorPage() {
                 <MemeGallery templates={templates} onSelectTemplate={handleSelectTemplate} />
               )}
             </>
-          ) : (
+          ) : selectedTemplate ? (
             <MemeEditor template={selectedTemplate} onBack={handleBackToGallery} />
+          ): (
+            <AiMemeGenerator 
+                template={logoMeme} 
+                onEditManually={handleSelectTemplate} 
+                onBack={handleBackToGallery} 
+            />
           )}
         </div>
       </main>

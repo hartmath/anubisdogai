@@ -12,7 +12,7 @@ import { ArrowLeft, Download, RefreshCw } from 'lucide-react';
 import { Slider } from './ui/slider';
 
 interface MemeEditorProps {
-  template: MemeTemplate;
+  template: MemeTemplate & { initialTexts?: string[] };
   onBack: () => void;
 }
 
@@ -45,7 +45,8 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
   
   const numInputs = template.box_count || 2;
-  const [textInputs, setTextInputs] = useState<string[]>(Array(numInputs).fill(''));
+  const initialTexts = template.initialTexts || Array(numInputs).fill('');
+  const [textInputs, setTextInputs] = useState<string[]>(initialTexts);
   const [fontSize, setFontSize] = useState(40);
   const [activeInput, setActiveInput] = useState(0);
 
@@ -61,9 +62,18 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
       const currentCanvas = fabricCanvasRef.current;
       if (!currentCanvas || !canvasRef.current?.parentElement) return;
 
-      const canvasWidth = canvasRef.current.parentElement.clientWidth;
-      const scale = canvasWidth / img.width!;
-      const canvasHeight = img.height! * scale;
+      const parentEl = canvasRef.current.parentElement;
+      const availableWidth = parentEl.clientWidth;
+      
+      let scale = availableWidth / img.width!;
+      let canvasHeight = img.height! * scale;
+
+      if (img.width! > parentEl.clientWidth) {
+          scale = parentEl.clientWidth / img.width!;
+          canvasHeight = img.height! * scale;
+      }
+      
+      const canvasWidth = availableWidth;
 
       currentCanvas.setDimensions({ width: canvasWidth, height: canvasHeight });
       
@@ -78,8 +88,8 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
       
       const boxHeight = canvasHeight / numInputs;
       for (let i = 0; i < numInputs; i++) {
-        const topPosition = i * boxHeight + 10;
-        const textBox = createMemeText('', topPosition, canvasWidth);
+        const topPosition = (i === numInputs -1 && numInputs > 1) ? canvasHeight - (boxHeight) : i * boxHeight + 10;
+        const textBox = createMemeText(textInputs[i] || '', topPosition, canvasWidth);
         currentCanvas.add(textBox);
       }
       
@@ -205,7 +215,8 @@ export function MemeEditor({ template, onBack }: MemeEditorProps) {
     const boxHeight = canvasHeight / numInputs;
 
     objects.forEach((obj, i) => {
-        (obj as fabric.Textbox).set({ text: '', fontSize: 40, top: i * boxHeight + 10 });
+        const topPosition = (i === numInputs -1 && numInputs > 1) ? canvasHeight - (boxHeight) : i * boxHeight + 10;
+        (obj as fabric.Textbox).set({ text: '', fontSize: 40, top: topPosition });
     });
 
     canvas.renderAll();
