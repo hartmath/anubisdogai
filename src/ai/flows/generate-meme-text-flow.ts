@@ -7,7 +7,7 @@
  */
 'use server';
 
-import { ai } from '@/ai/genkit';
+import { ai, generate } from '@/ai/genkit';
 import { z } from 'zod';
 
 const GenerateMemeTextInputSchema = z.object({
@@ -23,20 +23,15 @@ export type GenerateMemeTextOutput = z.infer<
   typeof GenerateMemeTextOutputSchema
 >;
 
-const prompt = ai.definePrompt({
-  name: 'generateMemeTextPrompt',
-  input: { schema: GenerateMemeTextInputSchema },
-  output: { schema: GenerateMemeTextOutputSchema },
-  prompt: `You are a viral meme creator. Your task is to generate funny and relevant text for a given meme template based on a topic.
+const prompt = `You are a viral meme creator. Your task is to generate funny and relevant text for a given meme template based on a topic.
 
-Meme Template: {{{memeName}}}
-Topic: {{{topic}}}
+Meme Template: {{memeName}}
+Topic: {{topic}}
 
 Based on the meme format and the topic, generate the appropriate text for the meme's text boxes. The number of text strings in the output array should match the typical number of text boxes for the specified meme. For most memes, this is two (top text, bottom text). For the "Anubis Dog AI Logo" meme, provide two short, funny lines that relate to crypto, AI, or dogs.
 
 Make the text concise, witty, and shareable.
-`,
-});
+`;
 
 const generateMemeTextFlow = ai.defineFlow(
   {
@@ -45,7 +40,15 @@ const generateMemeTextFlow = ai.defineFlow(
     outputSchema: GenerateMemeTextOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
+    const { output } = await generate({
+        model: 'googleai/gemini-1.5-flash-preview',
+        prompt: prompt,
+        input: input,
+        output: {
+            schema: GenerateMemeTextOutputSchema,
+        },
+    });
+
     if (!output) {
       throw new Error('AI did not return any text.');
     }
