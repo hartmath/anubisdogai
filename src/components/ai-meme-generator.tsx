@@ -1,12 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { MemeEditor } from '@/components/meme-editor';
+import Image from 'next/image';
+import { fabric } from 'fabric';
 import { MemeTemplate } from '@/lib/types';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { LoaderCircle, WandSparkles, ArrowLeft, Bot } from 'lucide-react';
+import {
+  LoaderCircle,
+  WandSparkles,
+  ArrowLeft,
+  Bot,
+  Download,
+  RefreshCw,
+} from 'lucide-react';
 import { generateMemeImageAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from './ui/label';
@@ -15,11 +23,33 @@ interface AiMemeGeneratorProps {
   onBack: () => void;
 }
 
+const createMemeText = (
+  text: string,
+  top: number,
+  canvasWidth: number,
+  customOptions = {}
+) => {
+  return new fabric.Textbox(text, {
+    fontFamily: 'Impact',
+    fontSize: 40,
+    fill: '#fff',
+    stroke: '#000',
+    strokeWidth: 2,
+    textAlign: 'center',
+    width: canvasWidth * 0.9,
+    left: canvasWidth / 2,
+    top: top,
+    originX: 'center',
+    lineHeight: 1.1,
+    ...customOptions,
+  });
+};
+
 export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
   const [topText, setTopText] = useState('');
   const [bottomText, setBottomText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedTemplate, setGeneratedTemplate] = useState<MemeTemplate | null>(null);
+  const [finalMemeUrl, setFinalMemeUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleGenerate = async () => {
@@ -33,24 +63,48 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
     }
 
     setIsGenerating(true);
-    setGeneratedTemplate(null);
+    setFinalMemeUrl(null);
 
     try {
       const result = await generateMemeImageAction(topText, bottomText);
-      const newTemplate: MemeTemplate = {
-        id: `ai-meme-${Date.now()}`,
-        name: 'AI Generated Meme',
-        url: result.imageUrl,
+
+      // Create final meme on a canvas
+      const canvas = new fabric.StaticCanvas(null, {
         width: 1024,
         height: 1024,
-        box_count: 2,
-        initialTexts: [topText, bottomText],
-      };
-      setGeneratedTemplate(newTemplate);
-      toast({
-        title: 'Meme image generated!',
-        description: 'You can now edit the text or download your meme.',
       });
+
+      fabric.Image.fromURL(
+        result.imageUrl,
+        (img) => {
+          if (!img.width || !img.height) return;
+          canvas.setDimensions({ width: img.width, height: img.height });
+          img.set({
+            selectable: false,
+            evented: false,
+          });
+          canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+
+          const topTextBox = createMemeText(topText, 10, img.width);
+          const bottomTextBox = createMemeText(
+            bottomText,
+            img.height - 60,
+            img.width
+          );
+
+          canvas.add(topTextBox, bottomTextBox);
+          canvas.renderAll();
+
+          const dataURL = canvas.toDataURL({ format: 'png', quality: 1.0 });
+          setFinalMemeUrl(dataURL);
+
+          toast({
+            title: 'Meme generated!',
+            description: 'Your AI-powered meme is ready to be shared.',
+          });
+        },
+        { crossOrigin: 'anonymous' }
+      );
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -62,9 +116,22 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
     }
   };
 
-  if (generatedTemplate) {
-    return <MemeEditor template={generatedTemplate} onBack={onBack} />;
-  }
+  const handleDownload = () => {
+    if (!finalMemeUrl) return;
+    const link = document.createElement('a');
+    link.download = `ai-meme-${Date.now()}.png`;
+    link.href = finalMemeUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleReset = () => {
+    setTopText('');
+    setBottomText('');
+    setFinalMemeUrl(null);
+    setIsGenerating(false);
+  };
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
@@ -76,57 +143,97 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
           Enter your meme text, and our AI will generate a fitting image for it.
         </p>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot /> AI Meme Generation
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="top-text" className="text-lg">
-              Top Text
-            </Label>
-            <Input
-              id="top-text"
-              value={topText}
-              onChange={(e) => setTopText(e.target.value)}
-              placeholder="e.g., Me thinking I know the code"
-              className="text-base"
-            />
+
+      {!finalMemeUrl && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bot /> AI Meme Generation
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="top-text" className="text-lg">
+                Top Text
+              </Label>
+              <Input
+                id="top-text"
+                value={topText}
+                onChange={(e) => setTopText(e.target.value)}
+                placeholder="e.g., Me thinking I know the code"
+                className="text-base"
+                disabled={isGenerating}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bottom-text" className="text-lg">
+                Bottom Text
+              </Label>
+              <Input
+                id="bottom-text"
+                value={bottomText}
+                onChange={(e) => setBottomText(e.target.value)}
+                placeholder="e.g., The code knowing I don't"
+                className="text-base"
+                disabled={isGenerating}
+              />
+            </div>
+            <Button
+              onClick={handleGenerate}
+              disabled={isGenerating}
+              size="lg"
+              className="w-full"
+            >
+              {isGenerating ? (
+                <>
+                  <LoaderCircle className="mr-2 animate-spin" />
+                  Generating Image...
+                </>
+              ) : (
+                <>
+                  <WandSparkles className="mr-2" />
+                  Generate Meme
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {isGenerating && !finalMemeUrl && (
+         <div className="flex flex-col items-center gap-4 text-center">
+            <LoaderCircle className="w-12 h-12 animate-spin text-primary" />
+            <p className="text-lg font-semibold">Generating your meme...</p>
+            <p className="text-sm text-muted-foreground">This can take up to 30 seconds.</p>
+        </div>
+      )}
+
+      {finalMemeUrl && (
+        <div className="flex flex-col gap-6">
+          <Card>
+            <CardContent className="p-4">
+              <Image
+                src={finalMemeUrl}
+                alt="Generated AI Meme"
+                width={1024}
+                height={1024}
+                className="rounded-md"
+              />
+            </CardContent>
+          </Card>
+          <div className="grid grid-cols-2 gap-4">
+            <Button onClick={handleReset} variant="secondary">
+              <RefreshCw className="mr-2" />
+              Create Another
+            </Button>
+            <Button onClick={handleDownload}>
+              <Download className="mr-2" />
+              Download Meme
+            </Button>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="bottom-text" className="text-lg">
-              Bottom Text
-            </Label>
-            <Input
-              id="bottom-text"
-              value={bottomText}
-              onChange={(e) => setBottomText(e.target.value)}
-              placeholder="e.g., The code knowing I don't"
-              className="text-base"
-            />
-          </div>
-          <Button
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            size="lg"
-            className="w-full"
-          >
-            {isGenerating ? (
-              <>
-                <LoaderCircle className="mr-2 animate-spin" />
-                Generating Image...
-              </>
-            ) : (
-              <>
-                <WandSparkles className="mr-2" />
-                Generate Meme Image
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+      )}
+
       <div className="text-center">
         <Button onClick={onBack} variant="outline">
           <ArrowLeft className="mr-2" />
