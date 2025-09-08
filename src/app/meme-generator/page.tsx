@@ -94,8 +94,6 @@ export default function MemeGeneratorPage() {
             <MemeEditor template={selectedTemplate} onBack={handleBackToGallery} />
           ): (
             <AiMemeGenerator 
-                template={logoMeme} 
-                onEditManually={handleSelectTemplate} 
                 onBack={handleBackToGallery} 
             />
           )}

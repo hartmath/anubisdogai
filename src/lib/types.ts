@@ -5,4 +5,5 @@ export interface MemeTemplate {
     width: number;
     height: number;
     box_count: number;
+    initialTexts?: string[];
 }

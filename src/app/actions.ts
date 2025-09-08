@@ -5,9 +5,9 @@ import {
   type GenerateAvatarInput,
 } from '@/ai/flows/generate-avatar-flow';
 import {
-  generateMemeText,
-  type GenerateMemeTextInput,
-} from '@/ai/flows/generate-meme-text-flow';
+  generateMemeImage,
+  type GenerateMemeImageInput,
+} from '@/ai/flows/generate-meme-image-flow';
 import type { MemeTemplate } from '@/lib/types';
 
 export async function generateAvatarAction(
@@ -46,16 +46,19 @@ export async function getMemesAction(): Promise<MemeTemplate[]> {
   }
 }
 
-export async function generateMemeTextAction(memeName: string, topic: string) {
+export async function generateMemeImageAction(
+  topText: string,
+  bottomText: string
+) {
   try {
-    const input: GenerateMemeTextInput = { memeName, topic };
-    const result = await generateMemeText(input);
+    const input: GenerateMemeImageInput = { topText, bottomText };
+    const result = await generateMemeImage(input);
     return result;
   } catch (error: any) {
-    console.error('Meme text generation failed:', error);
+    console.error('Meme image generation failed:', error);
     throw new Error(
       error.message ||
-        'An unknown error occurred during meme text generation.'
+        'An unknown error occurred during meme image generation.'
     );
   }
 }

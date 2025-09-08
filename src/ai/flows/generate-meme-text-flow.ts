@@ -7,17 +7,21 @@
  */
 'use server';
 
-import { ai, generate } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const GenerateMemeTextInputSchema = z.object({
-  memeName: z.string().describe('The name of the meme template (e.g., "Drake Hotline Bling").'),
+  memeName: z
+    .string()
+    .describe('The name of the meme template (e.g., "Drake Hotline Bling").'),
   topic: z.string().describe('The topic or situation for the meme.'),
 });
 export type GenerateMemeTextInput = z.infer<typeof GenerateMemeTextInputSchema>;
 
 const GenerateMemeTextOutputSchema = z.object({
-  texts: z.array(z.string()).describe('An array of strings for the meme text boxes.'),
+  texts: z
+    .array(z.string())
+    .describe('An array of strings for the meme text boxes.'),
 });
 export type GenerateMemeTextOutput = z.infer<
   typeof GenerateMemeTextOutputSchema
@@ -30,7 +34,7 @@ const generateMemeTextFlow = ai.defineFlow(
     outputSchema: GenerateMemeTextOutputSchema,
   },
   async (input) => {
-    const { output } = await generate({
+    const { output } = await ai.generate({
       model: 'googleai/gemini-1.5-flash-preview',
       prompt: `You are a viral meme creator. Your task is to generate funny and relevant text for a given meme template based on a topic.
 
@@ -52,7 +56,6 @@ Make the text concise, witty, and shareable.
     return output;
   }
 );
-
 
 export async function generateMemeText(
   input: GenerateMemeTextInput
