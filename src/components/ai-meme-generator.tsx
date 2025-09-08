@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -46,6 +47,8 @@ const createMemeText = (
     top: top,
     originX: 'center',
     lineHeight: 1.1,
+    // Set background to transparent to remove the overlay
+    backgroundColor: 'transparent',
   });
 };
 
