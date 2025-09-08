@@ -23,16 +23,6 @@ export type GenerateMemeTextOutput = z.infer<
   typeof GenerateMemeTextOutputSchema
 >;
 
-const prompt = `You are a viral meme creator. Your task is to generate funny and relevant text for a given meme template based on a topic.
-
-Meme Template: {{memeName}}
-Topic: {{topic}}
-
-Based on the meme format and the topic, generate the appropriate text for the meme's text boxes. The number of text strings in the output array should match the typical number of text boxes for the specified meme. For most memes, this is two (top text, bottom text). For the "Anubis Dog AI Logo" meme, provide two short, funny lines that relate to crypto, AI, or dogs.
-
-Make the text concise, witty, and shareable.
-`;
-
 const generateMemeTextFlow = ai.defineFlow(
   {
     name: 'generateMemeTextFlow',
@@ -41,12 +31,19 @@ const generateMemeTextFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await generate({
-        model: 'googleai/gemini-1.5-flash-preview',
-        prompt: prompt,
-        input: input,
-        output: {
-            schema: GenerateMemeTextOutputSchema,
-        },
+      model: 'googleai/gemini-1.5-flash-preview',
+      prompt: `You are a viral meme creator. Your task is to generate funny and relevant text for a given meme template based on a topic.
+
+Meme Template: ${input.memeName}
+Topic: ${input.topic}
+
+Based on the meme format and the topic, generate the appropriate text for the meme's text boxes. The number of text strings in the output array should match the typical number of text boxes for the specified meme. For most memes, this is two (top text, bottom text). For the "Anubis Dog AI Logo" meme, provide two short, funny lines that relate to crypto, AI, or dogs.
+
+Make the text concise, witty, and shareable.
+`,
+      output: {
+        schema: GenerateMemeTextOutputSchema,
+      },
     });
 
     if (!output) {
