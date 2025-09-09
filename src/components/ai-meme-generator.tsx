@@ -47,8 +47,9 @@ const createMemeText = (
     top: top,
     originX: 'center',
     lineHeight: 1.1,
-    // Set background to transparent to remove the overlay
     backgroundColor: 'transparent',
+    selectable: false,
+    evented: false,
   });
 };
 
@@ -68,16 +69,6 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fabricCanvasRef = useRef<fabric.StaticCanvas | null>(null);
 
-  useEffect(() => {
-    if (canvasRef.current && !fabricCanvasRef.current) {
-        fabricCanvasRef.current = new fabric.StaticCanvas(canvasRef.current);
-    }
-
-    return () => {
-        fabricCanvasRef.current?.dispose();
-        fabricCanvasRef.current = null;
-    };
-  }, []);
 
   const handleGenerate = async () => {
     if (!topText && !bottomText) {
@@ -91,22 +82,23 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
 
     setIsGenerating(true);
     setFinalMemeUrl(null);
-
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) {
-        setIsGenerating(false);
-        toast({ variant: 'destructive', title: 'Error', description: 'Canvas not initialized.' });
-        return;
-    }
     
-    // Clear the canvas completely before generating a new meme
-    canvas.clear();
-    // It's important to also reset the background image
-    canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
-
+    // Dispose of the old canvas if it exists
+    if (fabricCanvasRef.current) {
+        fabricCanvasRef.current.dispose();
+        fabricCanvasRef.current = null;
+    }
 
     try {
       const result = await generateMemeImageAction(topText, bottomText, style, subject);
+
+      if (!canvasRef.current) {
+          throw new Error('Canvas element not found.');
+      }
+      // Initialize a new canvas for each generation
+      const canvas = new fabric.StaticCanvas(canvasRef.current);
+      fabricCanvasRef.current = canvas;
+
 
       fabric.Image.fromURL(
         result.imageUrl,
@@ -114,10 +106,6 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
           if (!img.width || !img.height) return;
           
           canvas.setDimensions({ width: img.width, height: img.height });
-          img.set({
-            selectable: false,
-            evented: false,
-          });
           canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
 
           if (topText) {
@@ -126,8 +114,7 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
           }
 
           if (bottomText) {
-            // Estimate text box height for better positioning
-            const tempBox = new fabric.Textbox(bottomText, { fontSize: 40, width: img.width * 0.9 });
+            const tempBox = new fabric.Textbox(bottomText, { fontSize: 40, width: img.width * 0.9, fontFamily: 'Impact', lineHeight: 1.1 });
             const boxHeight = tempBox.height || 60;
             const bottomPosition = img.height - boxHeight - 10;
             const bottomTextBox = createMemeText(bottomText, bottomPosition, img.width);
@@ -172,7 +159,10 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
     setBottomText('');
     setFinalMemeUrl(null);
     setIsGenerating(false);
-    fabricCanvasRef.current?.clear();
+    if (fabricCanvasRef.current) {
+        fabricCanvasRef.current.dispose();
+        fabricCanvasRef.current = null;
+    }
   };
 
   return (
@@ -269,13 +259,13 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
       {finalMemeUrl && (
         <div className="flex flex-col gap-6">
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-4 bg-black">
               <Image
                 src={finalMemeUrl}
                 alt="Generated AI Meme"
                 width={1024}
                 height={1024}
-                className="rounded-md"
+                className="rounded-md w-full h-auto"
               />
             </CardContent>
           </Card>
