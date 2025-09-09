@@ -44,24 +44,36 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
 
   const createMemeText = (
     text: string,
-    top: number,
-    canvasWidth: number
+    canvasWidth: number,
+    isTop: boolean
   ) => {
-    return new fabric.Textbox(text, {
-      fontFamily: 'Impact',
-      fontSize: 40,
-      fill: '#fff',
-      stroke: '#000',
-      strokeWidth: 2,
-      textAlign: 'center',
-      width: canvasWidth * 0.9,
-      left: canvasWidth / 2,
-      top: top,
-      originX: 'center',
-      lineHeight: 1.1,
-      selectable: false,
-      evented: false,
-    });
+    const commonOptions = {
+        fontFamily: 'Impact',
+        fontSize: 40,
+        fill: '#fff',
+        stroke: '#000',
+        strokeWidth: 2,
+        textAlign: 'center',
+        width: canvasWidth * 0.9,
+        left: canvasWidth / 2,
+        originX: 'center',
+        lineHeight: 1.1,
+        selectable: false,
+        evented: false,
+    };
+    if (isTop) {
+        return new fabric.Textbox(text, {
+            ...commonOptions,
+            top: 10,
+            originY: 'top',
+        });
+    } else {
+         return new fabric.Textbox(text, {
+            ...commonOptions,
+            top: 0, // This will be set relative to canvas height later
+            originY: 'bottom',
+        });
+    }
   };
 
   const handleGenerate = async () => {
@@ -96,24 +108,16 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
             scaleX: canvas.width! / img.width!,
             scaleY: canvas.height! / img.height!,
         });
-
+        
         if (topText) {
-          const topTextBox = createMemeText(topText, 10, canvas.width!);
+          const topTextBox = createMemeText(topText, canvas.width!, true);
           canvas.add(topTextBox);
         }
 
         if (bottomText) {
-          // Create a temporary textbox to measure its height
-          const tempBox = new fabric.Textbox(bottomText, { 
-              fontSize: 40, 
-              width: canvas.width! * 0.9, 
-              fontFamily: 'Impact', 
-              lineHeight: 1.1 
-          });
-          const boxHeight = tempBox.height || 60; // Use measured height or a fallback
-          const bottomPosition = canvas.height! - boxHeight - 10;
-          
-          const bottomTextBox = createMemeText(bottomText, bottomPosition, canvas.width!);
+          const bottomTextBox = createMemeText(bottomText, canvas.width!, false);
+          // Set top relative to canvas height
+          bottomTextBox.set({ top: canvas.height! - 10 });
           canvas.add(bottomTextBox);
         }
 
