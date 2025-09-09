@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { fabric } from 'fabric';
 import { Button } from './ui/button';
@@ -30,30 +30,6 @@ interface AiMemeGeneratorProps {
   onBack: () => void;
 }
 
-const createMemeText = (
-  text: string,
-  top: number,
-  canvasWidth: number
-) => {
-  return new fabric.Textbox(text, {
-    fontFamily: 'Impact',
-    fontSize: 40,
-    fill: '#fff',
-    stroke: '#000',
-    strokeWidth: 2,
-    textAlign: 'center',
-    width: canvasWidth * 0.9,
-    left: canvasWidth / 2,
-    top: top,
-    originX: 'center',
-    lineHeight: 1.1,
-    backgroundColor: 'transparent',
-    selectable: false,
-    evented: false,
-  });
-};
-
-
 const styles = ['Photorealistic', 'Cartoon', 'Watercolor', 'Pixel Art', 'Anime'];
 const subjects = ['Person', 'Man', 'Woman', 'Animal', 'Thing'];
 
@@ -66,9 +42,30 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
   const [finalMemeUrl, setFinalMemeUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const fabricCanvasRef = useRef<fabric.StaticCanvas | null>(null);
+  // No longer need canvas refs, as we create a new one each time.
 
+  const createMemeText = (
+    text: string,
+    top: number,
+    canvasWidth: number
+  ) => {
+    return new fabric.Textbox(text, {
+      fontFamily: 'Impact',
+      fontSize: 40,
+      fill: '#fff',
+      stroke: '#000',
+      strokeWidth: 2,
+      textAlign: 'center',
+      width: canvasWidth * 0.9,
+      left: canvasWidth / 2,
+      top: top,
+      originX: 'center',
+      lineHeight: 1.1,
+      backgroundColor: 'transparent',
+      selectable: false,
+      evented: false,
+    });
+  };
 
   const handleGenerate = async () => {
     if (!topText && !bottomText) {
@@ -82,58 +79,59 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
 
     setIsGenerating(true);
     setFinalMemeUrl(null);
-    
-    // Dispose of the old canvas if it exists
-    if (fabricCanvasRef.current) {
-        fabricCanvasRef.current.dispose();
-        fabricCanvasRef.current = null;
-    }
 
     try {
       const result = await generateMemeImageAction(topText, bottomText, style, subject);
+      
+      const tempImg = new window.Image();
+      tempImg.crossOrigin = 'anonymous';
+      tempImg.src = result.imageUrl;
 
-      if (!canvasRef.current) {
-          throw new Error('Canvas element not found.');
-      }
-      // Initialize a new canvas for each generation
-      const canvas = new fabric.StaticCanvas(canvasRef.current);
-      fabricCanvasRef.current = canvas;
+      tempImg.onload = () => {
+        const canvasEl = document.createElement('canvas');
+        canvasEl.width = tempImg.width;
+        canvasEl.height = tempImg.height;
 
+        const canvas = new fabric.StaticCanvas(canvasEl);
 
-      fabric.Image.fromURL(
-        result.imageUrl,
-        (img) => {
-          if (!img.width || !img.height) return;
-          
-          canvas.setDimensions({ width: img.width, height: img.height });
-          canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+        const img = new fabric.Image(tempImg);
+        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+            scaleX: canvas.width! / img.width!,
+            scaleY: canvas.height! / img.height!,
+        });
 
-          if (topText) {
-            const topTextBox = createMemeText(topText, 10, img.width);
-            canvas.add(topTextBox);
-          }
+        if (topText) {
+          const topTextBox = createMemeText(topText, 10, canvas.width!);
+          canvas.add(topTextBox);
+        }
 
-          if (bottomText) {
-            const tempBox = new fabric.Textbox(bottomText, { fontSize: 40, width: img.width * 0.9, fontFamily: 'Impact', lineHeight: 1.1 });
-            const boxHeight = tempBox.height || 60;
-            const bottomPosition = img.height - boxHeight - 10;
-            const bottomTextBox = createMemeText(bottomText, bottomPosition, img.width);
-            canvas.add(bottomTextBox);
-          }
+        if (bottomText) {
+          const tempBox = new fabric.Textbox(bottomText, { fontSize: 40, width: canvas.width! * 0.9, fontFamily: 'Impact', lineHeight: 1.1 });
+          const boxHeight = tempBox.height || 60;
+          const bottomPosition = canvas.height! - boxHeight - 10;
+          const bottomTextBox = createMemeText(bottomText, bottomPosition, canvas.width!);
+          canvas.add(bottomTextBox);
+        }
 
-          canvas.renderAll();
-
-          const dataURL = canvas.toDataURL({ format: 'png', quality: 1.0 });
-          setFinalMemeUrl(dataURL);
-
-          toast({
+        canvas.renderAll();
+        
+        const dataURL = canvas.toDataURL({ format: 'png', quality: 1.0 });
+        setFinalMemeUrl(dataURL);
+        
+        canvas.dispose(); // Clean up the canvas instance.
+        
+        toast({
             title: 'Meme generated!',
             description: 'Your AI-powered meme is ready to be shared.',
-          });
-        },
-        { crossOrigin: 'anonymous' }
-      );
+        });
+      }
+
+      tempImg.onerror = () => {
+        throw new Error('Failed to load the generated image.');
+      }
+
     } catch (error: any) {
+      console.error(error);
       toast({
         variant: 'destructive',
         title: 'Generation Failed',
@@ -159,10 +157,6 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
     setBottomText('');
     setFinalMemeUrl(null);
     setIsGenerating(false);
-    if (fabricCanvasRef.current) {
-        fabricCanvasRef.current.dispose();
-        fabricCanvasRef.current = null;
-    }
   };
 
   return (
@@ -283,7 +277,6 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
       )}
 
       <div className="text-center">
-        <canvas ref={canvasRef} className="hidden"></canvas>
         <Button onClick={onBack} variant="outline">
           <ArrowLeft className="mr-2" />
           Back to Gallery
