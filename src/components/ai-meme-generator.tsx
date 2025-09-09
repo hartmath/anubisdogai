@@ -61,7 +61,6 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
       top: top,
       originX: 'center',
       lineHeight: 1.1,
-      backgroundColor: 'transparent',
       selectable: false,
       evented: false,
     });
