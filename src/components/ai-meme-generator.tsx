@@ -42,8 +42,6 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
   const [finalMemeUrl, setFinalMemeUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // No longer need canvas refs, as we create a new one each time.
-
   const createMemeText = (
     text: string,
     top: number,
@@ -105,9 +103,16 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
         }
 
         if (bottomText) {
-          const tempBox = new fabric.Textbox(bottomText, { fontSize: 40, width: canvas.width! * 0.9, fontFamily: 'Impact', lineHeight: 1.1 });
-          const boxHeight = tempBox.height || 60;
+          // Create a temporary textbox to measure its height
+          const tempBox = new fabric.Textbox(bottomText, { 
+              fontSize: 40, 
+              width: canvas.width! * 0.9, 
+              fontFamily: 'Impact', 
+              lineHeight: 1.1 
+          });
+          const boxHeight = tempBox.height || 60; // Use measured height or a fallback
           const bottomPosition = canvas.height! - boxHeight - 10;
+          
           const bottomTextBox = createMemeText(bottomText, bottomPosition, canvas.width!);
           canvas.add(bottomTextBox);
         }
@@ -117,7 +122,8 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
         const dataURL = canvas.toDataURL({ format: 'png', quality: 1.0 });
         setFinalMemeUrl(dataURL);
         
-        canvas.dispose(); // Clean up the canvas instance.
+        // Ensure canvas is disposed to prevent memory leaks
+        canvas.dispose();
         
         toast({
             title: 'Meme generated!',
