@@ -42,7 +42,7 @@ fabric.Object.prototype.cornerSize = 12;
 const createMemeText = (text: string, top: number, canvasWidth: number) => {
   return new fabric.Textbox(text, {
     fontFamily: 'Impact',
-    fontSize: 40,
+    fontSize: 30,
     fill: '#fff',
     stroke: '#000',
     strokeWidth: 2,
@@ -98,7 +98,15 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
       currentCanvas.setBackgroundImage(img, currentCanvas.renderAll.bind(currentCanvas));
       
       const topTextBox = createMemeText(topText, 10, canvasWidth);
-      const bottomTextBox = createMemeText(bottomText, canvasHeight - 60, canvasWidth);
+
+      // Create a temp textbox to calculate the height for the bottom one
+      const tempText = new fabric.Textbox(bottomText, {
+        ...createMemeText(bottomText, 0, canvasWidth),
+        visible: false
+      });
+      const bottomPosition = canvasHeight - tempText.height! - 10;
+      const bottomTextBox = createMemeText(bottomText, bottomPosition, canvasWidth);
+
 
       currentCanvas.add(topTextBox, bottomTextBox);
 
@@ -115,20 +123,32 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
   useEffect(() => {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
-    const [top, bottom] = canvas.getObjects('textbox') as fabric.Textbox[];
+    const objects = canvas.getObjects('textbox') as fabric.Textbox[];
+    if (objects.length < 2) return;
+    const [top, bottom] = objects;
     if (top) top.set('text', topText);
-    if (bottom) bottom.set('text', bottomText);
+    if (bottom) {
+        bottom.set('text', bottomText);
+        const canvasHeight = canvas.getHeight();
+         // Recalculate position
+        const tempText = new fabric.Textbox(bottomText, {
+            ...bottom,
+            visible: false
+        });
+        const bottomPosition = canvasHeight - tempText.height! - 10;
+        bottom.set('top', bottomPosition);
+    }
     canvas.renderAll();
   }, [topText, bottomText]);
 
 
   const handleGenerate = async () => {
     setIsGenerating(true);
-    setGeneratedImageUrl(null);
     if (fabricCanvasRef.current) {
       fabricCanvasRef.current.dispose();
       fabricCanvasRef.current = null;
     }
+    setGeneratedImageUrl(null);
 
     try {
       const result = await generateMemeImageAction(topText, bottomText, style, subject);
