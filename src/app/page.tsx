@@ -1,3 +1,4 @@
+
 import { AnubisAvatarGenerator } from "@/components/anubis-avatar-generator";
 import { Header } from "@/components/header";
 import { Send, LineChart, Twitter, MessageSquareQuote } from "lucide-react";
@@ -9,8 +10,16 @@ export default function Home() {
         <div className="flex flex-col min-h-screen bg-background text-foreground">
             <Header />
             <main className="flex-grow flex flex-col items-center justify-center p-4 sm:p-8">
-                <div className="flex flex-col items-center gap-8">
+                <div className="flex flex-col items-center gap-8 w-full max-w-4xl">
                      <AnubisAvatarGenerator />
+                     <div className="w-full max-w-xl">
+                        <Button asChild className="w-full" size="lg">
+                            <Link href="/meme-generator">
+                                <MessageSquareQuote className="mr-2" />
+                                Create a Meme
+                            </Link>
+                        </Button>
+                     </div>
                 </div>
             </main>
             <footer className="text-center p-6 text-sm text-muted-foreground">
