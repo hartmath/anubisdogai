@@ -40,13 +40,9 @@ const generateMemeImageFlow = ai.defineFlow(
   async (input) => {
     const { media } = await ai.generate({
       model: 'googleai/imagen-4.0-fast-generate-001',
-      prompt: `Generate a funny, high-quality, ${input.style} image that would work well for a meme featuring a ${input.subject}. Do not include any text in the image itself.
-
-Meme context:
-- Top Text: "${input.topText}"
-- Bottom Text: "${input.bottomText}"
-
-Generate an image that visually represents the humor or situation described by the text. The image should be suitable to have white text with a black border overlaid on it.`,
+      prompt: `Generate a funny, high-quality, ${input.style} image featuring a ${input.subject}. 
+      
+Important: Do NOT include any text in the image. The image should be a visual background only.`,
     });
 
     if (!media || !media.url) {
