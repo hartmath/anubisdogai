@@ -52,7 +52,7 @@ const resizeImage = (file: File): Promise<string> => {
                 } else {
                     if (height > MAX_IMAGE_DIMENSION) {
                         width = Math.round((width * MAX_IMAGE_DIMENSION) / height);
-                        height = MAX_IMAGE_DIMENSION;
+                        height = MAX__IMAGE_DIMENSION;
                     }
                 }
 
@@ -256,7 +256,7 @@ export function AnubisAvatarGenerator() {
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter text-primary font-headline">
                     Transform Your Profile Picture
                 </h1>
-                <p className="max-w-2xl mx-auto mt-4 text-md sm:text-lg text-muted-foreground">
+                <p className="max-w-2xl mx-auto mt-4 text-md sm:text-lg text-foreground font-headline">
                    Upload your photo and our AI will bestow upon you the headdress of Anubis.
                 </p>
                 <div className="mt-4 text-sm font-semibold text-primary/80">
@@ -400,3 +400,5 @@ export function AnubisAvatarGenerator() {
         </div>
     );
 }
+
+    
