@@ -22,9 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 const MAX_IMAGE_SIZE_BYTES = 4 * 1024 * 1024; // 4MB
 const MAX_IMAGE_DIMENSION = 1024; // 1024px
 const GENERATION_LIMIT = 10;
-const ONE_YEAR_IN_MS = 365 * 24 * 60 * 60 * 1000;
 const USAGE_STORAGE_KEY = 'anubis-avatar-usage';
-
 
 const styles = [
     { name: "Neon Glow" },
@@ -52,7 +50,7 @@ const resizeImage = (file: File): Promise<string> => {
                 } else {
                     if (height > MAX_IMAGE_DIMENSION) {
                         width = Math.round((width * MAX_IMAGE_DIMENSION) / height);
-                        height = MAX__IMAGE_DIMENSION;
+                        height = MAX_IMAGE_DIMENSION;
                     }
                 }
 
@@ -132,12 +130,13 @@ export function AnubisAvatarGenerator() {
     const { toast } = useToast();
 
     useEffect(() => {
-        const now = new Date().getTime();
+        const today = new Date().toDateString();
         let usage = JSON.parse(localStorage.getItem(USAGE_STORAGE_KEY) || '{}');
 
-        if (usage.timestamp && (now - usage.timestamp > ONE_YEAR_IN_MS)) {
-            usage = {};
-            localStorage.removeItem(USAGE_STORAGE_KEY);
+        // If the stored date is not today's date, reset the counter
+        if (usage.date !== today) {
+            usage = { count: 0, date: today };
+            localStorage.setItem(USAGE_STORAGE_KEY, JSON.stringify(usage));
         }
 
         const currentCount = usage.count || 0;
@@ -183,10 +182,9 @@ export function AnubisAvatarGenerator() {
         // Double check limits
         if (remainingGenerations <= 0) {
              setLimitReached(true);
-             setError("You have reached the generation limit. Please contact support.");
+             setError("You have reached your generation limit for today. Please try again tomorrow.");
              return;
         }
-
 
         setIsGenerating(true);
         setError(null);
@@ -204,11 +202,14 @@ export function AnubisAvatarGenerator() {
                 });
 
                 // Update usage count
-                const now = new Date().getTime();
+                const today = new Date().toDateString();
                 let usage = JSON.parse(localStorage.getItem(USAGE_STORAGE_KEY) || '{}');
-                const newCount = (usage.count || 0) + 1;
-                const newTimestamp = usage.timestamp || now;
-                localStorage.setItem(USAGE_STORAGE_KEY, JSON.stringify({ count: newCount, timestamp: newTimestamp }));
+                // Ensure we are working with today's data
+                if (usage.date !== today) {
+                    usage = { count: 0, date: today };
+                }
+                const newCount = usage.count + 1;
+                localStorage.setItem(USAGE_STORAGE_KEY, JSON.stringify({ count: newCount, date: today }));
                 setRemainingGenerations(GENERATION_LIMIT - newCount);
                 if (newCount >= GENERATION_LIMIT) {
                     setLimitReached(true);
@@ -259,10 +260,10 @@ export function AnubisAvatarGenerator() {
                 <p className="max-w-2xl mx-auto mt-4 text-md sm:text-lg text-foreground font-headline">
                    Upload your photo and our AI will bestow upon you the headdress of Anubis.
                 </p>
-                <div className="mt-4 text-sm font-semibold text-primary/80">
+                <div className="mt-4 text-sm font-semibold text-primary/80 font-headline">
                     {remainingGenerations > 0 
-                        ? `You have ${remainingGenerations} generation${remainingGenerations > 1 ? 's' : ''} remaining.`
-                        : "You have no generations remaining."
+                        ? `You have ${remainingGenerations} generation${remainingGenerations > 1 ? 's' : ''} remaining today.`
+                        : "You have no generations remaining today."
                     }
                 </div>
             </div>
@@ -289,8 +290,7 @@ export function AnubisAvatarGenerator() {
             {error && (
                 <Alert variant="destructive" className="w-full max-w-2xl">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>{limitReached ? "Generation Limit Reached" : "Error"}</AlertTitle>
-
+                    <AlertTitle>{limitReached ? "Daily Limit Reached" : "Error"}</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
@@ -400,5 +400,3 @@ export function AnubisAvatarGenerator() {
         </div>
     );
 }
-
-    
