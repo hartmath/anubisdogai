@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
-import { Space_Grotesk } from "next/font/google";
+import { Orbitron } from "next/font/google";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
+const orbitron = Orbitron({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
+  variable: "--font-orbitron",
 });
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -34,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} dark`}>
+    <html lang="en" className={`${orbitron.variable} dark`}>
       <head>
         <link rel="icon" href="/logo.png" />
       </head>
