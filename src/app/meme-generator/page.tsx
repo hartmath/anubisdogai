@@ -63,7 +63,7 @@ export default function MemeGeneratorPage() {
           {!selectedTemplate && !showAiGenerator ? (
             <>
               <div className="text-center mb-8">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter text-primary font-headline">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter text-primary">
                   Meme Generator
                 </h1>
                 <p className="max-w-2xl mx-auto mt-4 text-md sm:text-lg text-muted-foreground">

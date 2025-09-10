@@ -17,8 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-orbitron)', 'sans-serif'],
-        headline: ['var(--font-orbitron)', 'sans-serif'],
+        sans: ['var(--font-sans)', 'sans-serif'],
+        headline: ['var(--font-sans)', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

@@ -208,7 +208,7 @@ export function AnubisAvatarGenerator() {
                 if (usage.date !== today) {
                     usage = { count: 0, date: today };
                 }
-                const newCount = usage.count + 1;
+                const newCount = (usage.count || 0) + 1;
                 localStorage.setItem(USAGE_STORAGE_KEY, JSON.stringify({ count: newCount, date: today }));
                 setRemainingGenerations(GENERATION_LIMIT - newCount);
                 if (newCount >= GENERATION_LIMIT) {
@@ -254,13 +254,13 @@ export function AnubisAvatarGenerator() {
     return (
         <div className="w-full max-w-4xl mx-auto flex flex-col items-center gap-12">
             <div className="text-center">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter text-primary font-headline">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter text-primary">
                     Transform Your Profile Picture
                 </h1>
-                <p className="max-w-2xl mx-auto mt-4 text-md sm:text-lg text-foreground font-headline">
+                <p className="max-w-2xl mx-auto mt-4 text-md sm:text-lg text-foreground">
                    Upload your photo and our AI will bestow upon you the headdress of Anubis.
                 </p>
-                <div className="mt-4 text-sm font-semibold text-primary/80 font-headline">
+                <div className="mt-4 text-sm font-semibold text-primary/80">
                     {remainingGenerations > 0 
                         ? `You have ${remainingGenerations} generation${remainingGenerations > 1 ? 's' : ''} remaining today.`
                         : "You have no generations remaining today."
@@ -298,7 +298,7 @@ export function AnubisAvatarGenerator() {
             {originalImage && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
                     <div className="flex flex-col items-center gap-2">
-                        <h2 className="text-2xl font-bold text-center font-headline">Original</h2>
+                        <h2 className="text-2xl font-bold text-center">Original</h2>
                         <Card className="w-full aspect-square relative overflow-hidden bg-card/50">
                             <Image
                                 src={originalImage}
@@ -309,7 +309,7 @@ export function AnubisAvatarGenerator() {
                         </Card>
                     </div>
                     <div className="flex flex-col items-center gap-2">
-                         <h2 className="text-2xl font-bold text-center font-headline">Avatar</h2>
+                         <h2 className="text-2xl font-bold text-center">Avatar</h2>
                          <Card className="w-full aspect-square relative overflow-hidden bg-card/50 flex items-center justify-center">
                              {generatedImage ? (
                                 <Image src={generatedImage} alt="Final generated image" fill className="object-cover z-10"/>
@@ -336,7 +336,7 @@ export function AnubisAvatarGenerator() {
 
             {originalImage && (
                  <div className="w-full max-w-xl text-center">
-                    <h2 className="text-2xl font-bold font-headline mb-4">Select a Style</h2>
+                    <h2 className="text-2xl font-bold mb-4">Select a Style</h2>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         {styles.map((style) => (
                             <button

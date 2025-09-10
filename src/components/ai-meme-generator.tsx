@@ -104,7 +104,7 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
         ...createMemeText(bottomText, 0, canvasWidth),
         visible: false
       });
-      const bottomPosition = canvasHeight - tempText.height! - 10;
+      const bottomPosition = canvasHeight - (tempText.height || 0) - 10;
       const bottomTextBox = createMemeText(bottomText, bottomPosition, canvasWidth);
 
 
@@ -135,7 +135,7 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
             ...bottom,
             visible: false
         });
-        const bottomPosition = canvasHeight - tempText.height! - 10;
+        const bottomPosition = canvasHeight - (tempText.height || 0) - 10;
         bottom.set('top', bottomPosition);
     }
     canvas.renderAll();
@@ -200,7 +200,7 @@ export function AiMemeGenerator({ onBack }: AiMemeGeneratorProps) {
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-8">
       <div className="text-center">
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tighter text-primary font-headline">
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tighter text-primary">
           AI Meme Generator
         </h1>
         <p className="max-w-2xl mx-auto mt-4 text-md sm:text-lg text-muted-foreground">
